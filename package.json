@@ -1,0 +1,39 @@
+{
+  "name": "cs-grapher-demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./dist/src/lib/index.js",
+  "types": "./types/src/lib/index.d.ts",
+  "type": "commonjs",
+  "scripts": {
+    "build": "tsc",
+    "demo": "ts-node src/demo/index.ts",
+    "declarations": "ttsc --emitDeclarationOnly",
+    "test": "jest --runInBand --colors --config jest.config.ts",
+    "lint": "eslint ./src/**",
+    "lint:fix": "eslint ./src/** --fix",
+    "check-updates": "npx npm-check-updates",
+    "update-packages": "npx npm-check-updates -u"
+  },
+  "keywords": [
+    "graph"
+  ],
+  "author": "Ilya Kirsanov",
+  "license": "ISC",
+  "dependencies": {
+    "typescript": "^4.8.4"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.2.2",
+    "@types/uuid": "^8.3.4",
+    "@typescript-eslint/eslint-plugin": "^5.30.7",
+    "@typescript-eslint/parser": "^5.30.7",
+    "eslint": "^8.20.0",
+    "jest": "^29.2.2",
+    "npm-check-updates": "^16.0.0",
+    "ts-jest": "^29.0.3",
+    "ts-node": "^10.9.1",
+    "ttypescript": "^1.5.13",
+    "uuid": "^9.0.0"
+  }
+}
