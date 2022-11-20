@@ -1,9 +1,9 @@
 {
-  "name": "cs-grapher-demo",
+  "name": "noob-grapher",
   "version": "1.0.0",
   "description": "",
   "main": "./dist/src/lib/index.js",
-  "types": "./types/src/lib/index.d.ts",
+  "types": "./types/src/lib/types.d.ts",
   "type": "commonjs",
   "scripts": {
     "build": "tsc",
@@ -15,9 +15,6 @@
     "check-updates": "npx npm-check-updates",
     "update-packages": "npx npm-check-updates -u"
   },
-  "keywords": [
-    "graph"
-  ],
   "author": "Ilya Kirsanov",
   "license": "ISC",
   "dependencies": {
@@ -30,6 +27,7 @@
     "@typescript-eslint/parser": "^5.30.7",
     "eslint": "^8.20.0",
     "jest": "^29.2.2",
+    "np": "^7.6.2",
     "npm-check-updates": "^16.0.0",
     "ts-jest": "^29.0.3",
     "ts-node": "^10.9.1",

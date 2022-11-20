@@ -1,4 +1,4 @@
-import { INode } from "./INode";
+import { INode, INodeClass } from "./INode";
 import { Value } from "./shared";
 
 export interface IGraph {
@@ -8,5 +8,5 @@ export interface IGraph {
 
 export interface IDirectGraph {
   data: IGraph | null,
-  createNode: (value: Value) => INode,
+  createNode: (value: Value) => INodeClass,
 }

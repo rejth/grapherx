@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-import DirectGraph from "../lib/index";
+import { DirectGraph } from "../lib/index";
 
 const graph = new DirectGraph();
 

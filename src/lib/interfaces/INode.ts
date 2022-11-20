@@ -1,4 +1,3 @@
-import { IGraph } from './IDirectGraph';
 import { Value } from './shared';
 
 export interface INode {

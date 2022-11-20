@@ -1,10 +1,17 @@
-# 💻
+# 🛠 Noob Grapher
 
-## 🛠 Backend:
+Simple library for creating directed graphs.
 
-## 🧪 Test:
+## Project structure
 
-- Jest
+```
+- src
+  |-- demo            // sandbox for testing and debugging functionality
+  |-- lib             // source code
+      |-- interfaces  // TS types and interfaces
+      |-- types.ts    // entry point for all TS types and interfaces
+      |-- index.ts    // main logic
+```
 
 ## Get Started
 
@@ -24,3 +31,11 @@ npm install
 ##### `npm run build`
 
 Builds the app for production to the `dist` folder.
+
+##### `npm run demo`
+
+Run your sandbox for testing and debugging functionality.
+
+##### `npm run declarations`
+
+Generate types declarations.
