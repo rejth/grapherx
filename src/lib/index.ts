@@ -31,8 +31,6 @@ export default class DirectGraph implements IDirectGraph {
       static value: Value = node.value;
       static neighbours: INode[] = node.neighbours;
 
-      static #graph = { ...data };
-
       private static getIterator(object: INode[] = []): IterableIterator<INode> {
         return object.values();
       }
@@ -48,10 +46,9 @@ export default class DirectGraph implements IDirectGraph {
       }
 
       private static find(uuid: string): INode | undefined {
-        const { vertex } = this.#graph;
-        if (vertex?.uuid === uuid) return vertex;
+        if (data?.vertex?.uuid === uuid) return data.vertex;
 
-        const stack = [this.getIterator(vertex?.neighbours)];
+        const stack = [this.getIterator(data?.vertex?.neighbours)];
 
         while (stack.length) {
           const iterator = stack.pop();
