@@ -1,7 +1,7 @@
 import { v4 as uuid } from 'uuid';
 import { IDirectGraph, IGraph, INode, INodeClass, Value } from "./types";
 
-class DirectGraph implements IDirectGraph {
+export default class DirectGraph implements IDirectGraph {
   data: IGraph | null;
 
   constructor() {
@@ -95,5 +95,3 @@ class DirectGraph implements IDirectGraph {
     };
   }
 }
-
-export { DirectGraph };
