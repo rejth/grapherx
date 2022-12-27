@@ -1,4 +1,4 @@
-# 🛠 Noob Grapher
+# 🛠 GrapherX
 
 Simple library for creating directed graphs.
 
