@@ -1,40 +1,50 @@
 # 🛠 GrapherX
 
-Simple library for creating directed graphs.
+Simple library for work with graphs (directed and undirected).
 
-## Project structure
+Graph is based on Adjacency List and provides the features below.
 
-```
-- src
-  |-- demo            // sandbox for testing and debugging functionality
-  |-- lib             // source code
-      |-- interfaces  // TS types and interfaces
-      |-- types.ts    // entry point for all TS types and interfaces
-      |-- index.ts    // main logic
-```
+The algorithmic complexity of the operation is on the right.\
+`V` - the total number of Vertices.\
+`E` - the total number of Edges in the Graph.
+
+Available features with the algorithmic complexity:
+- [ ] Add Vertex - `O(1)`
+- [ ] Add Edge - `O(1)`
+- [ ] Update Vertex and get adjacent Vertices - `O(1)`
+- [ ] Remove Vertex - `O(V+E)`
+- [ ] Remove Edge - `O(E)`
+- [ ] Binary search by Vertex value `O(logn)`
+- [ ] Breadth First search
+- [ ] Depth First search
+- [ ] Detect cycles in Graph
+- [ ] Find the shortest path between two Vertices
+- [ ] Topological sort (if a graph is directed)
 
 ## Get Started
 
 Prerequisites:
 
 - Node 16+
-- npm
+- npm 5+
+- git latest
 
 To set up the app execute the following commands.
 
 ```bash
-git clone
-cd
+git clone https://github.com/rejth/grapherx.git
+cd grapherx
 npm install
 ```
+## Available scripts
 
 ##### `npm run build`
 
 Builds the app for production to the `dist` folder.
 
-##### `npm run demo`
+##### `npm run test`
 
-Run your sandbox for testing and debugging functionality.
+Run unit tests.
 
 ##### `npm run declarations`
 

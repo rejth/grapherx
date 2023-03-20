@@ -3,7 +3,7 @@
 # VS Code
 .vscode/settings.json
 
-# Node artifact files
+# ListNode artifact files
 node_modules/
 
 # Jetbrains IDE
