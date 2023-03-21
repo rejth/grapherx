@@ -1,4 +1,4 @@
-import { IGraph, TVertex, TAdjacentVertex } from "./interface";
+import { IGraph, TVertex } from "./interface";
 import { Vertex } from "./Vertex";
 
 export class Graph<T = unknown> implements IGraph<T> {
@@ -28,31 +28,13 @@ export class Graph<T = unknown> implements IGraph<T> {
 
   addEdge(sourceIndex: number, targetIndex: number): void {
     if (sourceIndex > this.#verticesCount || targetIndex > this.#verticesCount) return;
-
-    const { edges: targetEdges, ...targetRest } = this.vertices[targetIndex];
-    const { edges: sourceEdges, ...sourceRest } = this.vertices[sourceIndex];
-    this.vertices[sourceIndex].edges.insertFirst(targetRest);
-    this.vertices[targetIndex].edges.insertFirst(sourceRest);
+    this.vertices[sourceIndex].edges.insertFirst(this.vertices[targetIndex]);
+    this.vertices[targetIndex].edges.insertFirst(this.vertices[sourceIndex]);
   }
 
-  updateVertex(index: number, newValue: T): Iterable<TAdjacentVertex<T>> {
+  updateVertex(index: number, newValue: T): Iterable<TVertex<T>> {
     this.vertices[index].value = newValue;
-    const vertex = this.vertices[index];
-
-    for (const adjacentVertex of vertex.edges.values) {
-      const currentVertex = this.vertices[adjacentVertex.index];
-
-      let currentNode = currentVertex.edges.first;
-      while (currentNode) {
-        if (currentNode?.value.index == index) {
-          currentNode.value = {...currentNode.value, value: newValue };
-          break;
-        }
-        currentNode = currentNode.next;
-      }
-    }
-
-    return vertex.edges.values;
+    return this.vertices[index].edges.values;
   }
 
   printGraph(): void {

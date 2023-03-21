@@ -14,7 +14,6 @@ Available features with the algorithmic complexity:
 - [ ] Update Vertex and get adjacent Vertices - `O(1)`
 - [ ] Remove Vertex - `O(V+E)`
 - [ ] Remove Edge - `O(E)`
-- [ ] Binary search by Vertex value `O(logn)`
 - [ ] Breadth First search
 - [ ] Depth First search
 - [ ] Detect cycles in Graph
