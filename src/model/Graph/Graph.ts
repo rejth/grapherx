@@ -22,6 +22,10 @@ export class Graph<T = unknown> implements IGraph<T> {
     this.#vertices = data;
   }
 
+  #getIterator(array: TVertex<T>[] = []): IterableIterator<TVertex<T>> {
+    return array.values();
+  }
+
   addVertex(index: number, value: T): void {
     this.vertices[index].value = value;
   }
@@ -29,12 +33,98 @@ export class Graph<T = unknown> implements IGraph<T> {
   addEdge(sourceIndex: number, targetIndex: number): void {
     if (sourceIndex > this.#verticesCount || targetIndex > this.#verticesCount) return;
     this.vertices[sourceIndex].edges.insertFirst(this.vertices[targetIndex]);
-    this.vertices[targetIndex].edges.insertFirst(this.vertices[sourceIndex]);
   }
 
   updateVertex(index: number, newValue: T): Iterable<TVertex<T>> {
     this.vertices[index].value = newValue;
     return this.vertices[index].edges.values;
+  }
+
+  breadthFirstSearch(): number[] {
+    const queue: TVertex<T>[] = [];
+    const traversal: number[] = [];
+
+    this.vertices[0].visited = true;
+    queue.push(this.vertices[0])
+    traversal.push(this.vertices[0].index);
+
+    while (queue.length) {
+      const vertex = queue.shift();
+      if (!vertex) return traversal;
+
+      for (const adjacent of vertex.edges.nodes) {
+        if (adjacent && !adjacent.value.visited) {
+          const id = adjacent.value.index;
+          this.vertices[id].visited = true;
+
+          queue.push(this.vertices[id]);
+          traversal.push(id);
+        }
+      }
+    }
+
+    for (const node of this.vertices) {
+      node.visited = false;
+    }
+
+    return traversal;
+  }
+
+  depthFirstSearch(): number[] {
+    const stack: IterableIterator<TVertex<T>>[] = [this.#getIterator(this.vertices)];
+    const traversal: number[] = [];
+
+    while (stack.length) {
+      const iterator = stack.pop();
+      if (!iterator) return traversal;
+
+      for (const vertex of iterator) {
+        if (vertex && !vertex.visited) {
+          const id = vertex.index;
+          this.vertices[id].visited = true;
+
+          const adjacentVertices = Array.from(vertex.edges.values);
+
+          stack.push(iterator);
+          stack.push(this.#getIterator(adjacentVertices));
+          traversal.push(vertex?.index);
+          break;
+        }
+      }
+    }
+
+    for (const node of this.vertices) {
+      node.visited = false;
+    }
+
+    return traversal;
+  }
+
+  *#generateGraphValues(vertex: TVertex<T>): Generator<T | null> {
+    if (!vertex.visited) yield vertex.value;
+
+    const id = vertex.index;
+    this.vertices[id].visited = true;
+
+    const adjacentVertices = Array.from(vertex.edges.values);
+    if (!adjacentVertices || adjacentVertices.length === 0) return;
+
+    for (const node of adjacentVertices) {
+      yield* this.#generateGraphValues(node);
+    }
+  }
+
+  depthFirstTraversal(): IterableIterator<T | null> {
+    const generator = this.#generateGraphValues(this.vertices[0])
+    return {
+      [Symbol.iterator](): IterableIterator<T | null>  {
+        return this;
+      },
+
+      next(): IteratorResult<T | null> {
+        return generator.next()
+      }
+    }
   }
 
   printGraph(): void {
@@ -44,9 +134,9 @@ export class Graph<T = unknown> implements IGraph<T> {
       const vertex = this.vertices[i];
 
       if (vertex.value) {
-        process.stdout.write("|" + `id: ${String(i)}, value: ${String(vertex.value)}` + "| => ");
+        process.stdout.write(`|id: ${String(i)}, value: ${String(vertex.value)}| => `);
         for (const value of vertex.edges.values) {
-          process.stdout.write("[" + String(value.value) + "] -> ");
+          process.stdout.write(`[${String(value.value)}] -> `);
         }
 
       }
