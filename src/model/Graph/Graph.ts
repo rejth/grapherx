@@ -1,5 +1,6 @@
 import { IGraph, TVertex } from "./interface";
 import { Vertex } from "./Vertex";
+import { Deque, IDeque } from "../../lib";
 
 export class Graph<T = unknown> implements IGraph<T> {
   #vertices: TVertex<T>[];
@@ -41,7 +42,7 @@ export class Graph<T = unknown> implements IGraph<T> {
   }
 
   breadthFirstSearch(): number[] {
-    const queue: TVertex<T>[] = [];
+    const queue: IDeque<TVertex<T>> = new Deque();
     const traversal: number[] = [];
 
     this.vertices[0].visited = true;
@@ -125,6 +126,14 @@ export class Graph<T = unknown> implements IGraph<T> {
         return generator.next()
       }
     }
+  }
+
+  searchCycles(): void {
+    return;
+  }
+
+  findShortestPath(): void {
+    return;
   }
 
   printGraph(): void {

@@ -1,4 +1,5 @@
 export interface ISimpleQueue<T> {
+  get length(): number;
   get first(): T | null;
   get last(): T | null;
   isEmpty(): boolean;

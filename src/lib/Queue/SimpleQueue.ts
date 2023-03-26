@@ -8,12 +8,16 @@ export class SimpleQueue<T = unknown> implements ISimpleQueue<T> {
     this.queue = new LinkedList<T>();
   }
 
+  get length(): number {
+    return this.queue.length;
+  }
+
   get first(): T | null {
-    return this.queue.first?.value || null
+    return this.queue.first?.value || null;
   }
 
   get last(): T | null {
-    return this.queue.last?.value || null
+    return this.queue.last?.value || null;
   }
 
   isEmpty(): boolean {

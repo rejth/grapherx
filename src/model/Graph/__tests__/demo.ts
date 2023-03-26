@@ -22,8 +22,8 @@ const edgesA = graph.updateVertex(0, 'updated value A');
 
 graph.printGraph();
 
-// const traversalBreadth = graph.breadthFirstSearch();
-// console.log('traversalBreadth: ', traversalBreadth);
+const traversalBreadth = graph.breadthFirstSearch();
+console.log('traversalBreadth: ', traversalBreadth);
 
 const traversalDepth = graph.depthFirstSearch();
 console.log('traversalDepth: ', traversalDepth);

@@ -8,6 +8,8 @@ export interface IGraph<T> {
   breadthFirstSearch(): number[];
   depthFirstSearch(): number[];
   depthFirstTraversal(): IterableIterator<T | null>;
+  searchCycles(): void;
+  findShortestPath(): void;
   printGraph(): void;
 }
 
