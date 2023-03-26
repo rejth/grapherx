@@ -1,6 +1,6 @@
 # 🛠 GrapherX
 
-Simple library for work with graphs (directed and undirected).
+Simple library for work with **directed acyclic graphs**.
 
 Graph is based on Adjacency List and provides the features below.
 
@@ -9,16 +9,16 @@ The algorithmic complexity of the operation is on the right.\
 `E` - the total number of Edges in the Graph.
 
 Available features with the algorithmic complexity:
-- [ ] Add Vertex - `O(1)`
-- [ ] Add Edge - `O(1)`
-- [ ] Update Vertex and get adjacent Vertices - `O(1)`
+- [x] Add Vertex - `O(1)`
+- [x] Add Edge - `O(1)`
+- [x] Update Vertex and get adjacent Vertices - `O(1)`
 - [ ] Remove Vertex - `O(V+E)`
 - [ ] Remove Edge - `O(E)`
-- [ ] Breadth First search
-- [ ] Depth First search
+- [x] Breadth First search
+- [x] Depth First search
 - [ ] Detect cycles in Graph
 - [ ] Find the shortest path between two Vertices
-- [ ] Topological sort (if a graph is directed)
+- [ ] Topological sort
 
 ## Get Started
 
