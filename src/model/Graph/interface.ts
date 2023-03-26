@@ -7,8 +7,7 @@ export interface IGraph<T> {
   updateVertex(index: number, newValue: T): Iterable<TVertex<T>>;
   breadthFirstSearch(): number[];
   depthFirstSearch(): number[];
-  depthFirstTraversal(): IterableIterator<T | null>;
-  searchCycles(): void;
+  detectCycles(): IterableIterator<T | null>;
   findShortestPath(): void;
   printGraph(): void;
 }
@@ -19,4 +18,11 @@ export type TVertex<T> = {
   value: T | null;
   edges: ILinkedList<TVertex<T>>;
   visited: boolean;
+  traversalColor: TraversalColors;
+}
+
+export const enum TraversalColors {
+  WHITE = 'WHITE',
+  GREY = 'GREY',
+  BLACK = 'BLACK'
 }

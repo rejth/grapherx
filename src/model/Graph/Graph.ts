@@ -1,6 +1,6 @@
-import { IGraph, TVertex } from "./interface";
-import { Vertex } from "./Vertex";
-import { Deque, IDeque } from "../../lib";
+import {IGraph, TraversalColors, TVertex} from "./interface";
+import {Vertex} from "./Vertex";
+import {Deque, IDeque} from "../../lib";
 
 export class Graph<T = unknown> implements IGraph<T> {
   #vertices: TVertex<T>[];
@@ -46,7 +46,7 @@ export class Graph<T = unknown> implements IGraph<T> {
     const traversal: number[] = [];
 
     this.vertices[0].visited = true;
-    queue.push(this.vertices[0])
+    queue.push(this.vertices[0]);
     traversal.push(this.vertices[0].index);
 
     while (queue.length) {
@@ -88,7 +88,7 @@ export class Graph<T = unknown> implements IGraph<T> {
 
           stack.push(iterator);
           stack.push(this.#getIterator(adjacentVertices));
-          traversal.push(vertex?.index);
+          traversal.push(vertex.index);
           break;
         }
       }
@@ -102,34 +102,35 @@ export class Graph<T = unknown> implements IGraph<T> {
   }
 
   *#generateGraphValues(vertex: TVertex<T>): Generator<T | null> {
-    if (!vertex.visited) yield vertex.value;
-
     const id = vertex.index;
-    this.vertices[id].visited = true;
+    this.vertices[id].traversalColor = TraversalColors.GREY;
+    yield vertex.value;
 
     const adjacentVertices = Array.from(vertex.edges.values);
     if (!adjacentVertices || adjacentVertices.length === 0) return;
 
     for (const node of adjacentVertices) {
-      yield* this.#generateGraphValues(node);
+      if (node.traversalColor === TraversalColors.WHITE) {
+        yield* this.#generateGraphValues(node);
+      } else if (node.traversalColor === TraversalColors.BLACK) {
+        throw new Error(`A cycle has been found. Check the node with\nuuid: ${node.uuid} \nindex: ${node.index}`)
+      }
     }
+
+    this.vertices[id].traversalColor = TraversalColors.BLACK;
   }
 
-  depthFirstTraversal(): IterableIterator<T | null> {
-    const generator = this.#generateGraphValues(this.vertices[0])
+  detectCycles(): IterableIterator<T | null> {
+    const generator = this.#generateGraphValues(this.vertices[0]);
     return {
       [Symbol.iterator](): IterableIterator<T | null>  {
         return this;
       },
 
       next(): IteratorResult<T | null> {
-        return generator.next()
+        return generator.next();
       }
     }
-  }
-
-  searchCycles(): void {
-    return;
   }
 
   findShortestPath(): void {
