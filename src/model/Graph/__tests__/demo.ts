@@ -15,7 +15,7 @@ graph.addEdge(1, 3);
 graph.addEdge(2, 3);
 
 // //cycle
-// graph.addEdge(3, 0);
+graph.addEdge(3, 0);
 
 const edgesB = graph.updateVertex(1, 'updated value B');
 // console.log('edges B: ', [...edgesB])
@@ -31,8 +31,6 @@ graph.printGraph();
 // const traversalDepth = graph.depthFirstSearch();
 // console.log('traversalDepth: ', traversalDepth);
 //
-const iterator = graph.detectCycles();
+const result = graph.detectCycles();
+console.log(result);
 
-for (const value of iterator) {
-  console.log('Value of Graph: ', value)
-}

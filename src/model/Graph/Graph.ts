@@ -1,4 +1,4 @@
-import {IGraph, TraversalColors, TVertex} from "./interface";
+import {IGraph, TGraphCycleInfo, TraversalColors, TVertex} from "./interface";
 import {Vertex} from "./Vertex";
 import {Deque, IDeque} from "../../lib";
 
@@ -101,41 +101,61 @@ export class Graph<T = unknown> implements IGraph<T> {
     return traversal;
   }
 
-  *#generateGraphValues(vertex: TVertex<T>): Generator<T | null> {
+  *#generateVertices(vertex: TVertex<T>): Generator<TVertex<T> | null> {
     const id = vertex.index;
+    let error = '';
+
     this.vertices[id].traversalColor = TraversalColors.GREY;
-    yield vertex.value;
+    yield vertex;
 
     const adjacentVertices = Array.from(vertex.edges.values);
     if (!adjacentVertices || adjacentVertices.length === 0) return;
 
     for (const node of adjacentVertices) {
       if (node.traversalColor === TraversalColors.WHITE) {
-        yield* this.#generateGraphValues(node);
+        yield* this.#generateVertices(node);
       } else if (node.traversalColor === TraversalColors.BLACK) {
-        throw new Error(`A cycle has been found. Check the node with\nuuid: ${node.uuid} \nindex: ${node.index}`)
+        error = `A cycle has been found. Check the node with uuid: ${node.uuid}, index: ${node.index}`
+        throw new Error(error);
       }
     }
 
     this.vertices[id].traversalColor = TraversalColors.BLACK;
   }
 
-  detectCycles(): IterableIterator<T | null> {
-    const generator = this.#generateGraphValues(this.vertices[0]);
+  #depthFirstTraversal(): IterableIterator<TVertex<T> | null> {
+    const generator = this.#generateVertices(this.vertices[0]);
     return {
-      [Symbol.iterator](): IterableIterator<T | null>  {
+      [Symbol.iterator](): IterableIterator<TVertex<T> | null>  {
         return this;
       },
-
-      next(): IteratorResult<T | null> {
+      next(): IteratorResult<TVertex<T> | null> {
         return generator.next();
       }
     }
   }
 
+  detectCycles(): TGraphCycleInfo<T> | boolean  {
+    const iterator = this.#depthFirstTraversal();
+    const subGraph: TVertex<T>[] = [];
+
+    try {
+      for (const vertex of iterator) {
+        if (vertex) subGraph.push(vertex);
+      }
+    } catch(e: any) {
+      return { cycleIsDetected: true, errorMessage: String(e), subGraph }
+    }
+
+    return false;
+  }
+
   findShortestPath(): void {
     return;
   }
+
+  // TODO: add take method and apply in detectCycles method to return subgraph
+  // TODO: add filter method
 
   printGraph(): void {
     console.log(">>Adjacency List of the Graph<<");
