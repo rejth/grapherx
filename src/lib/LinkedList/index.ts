@@ -1,2 +1,2 @@
-export * from './interface'
-export { LinkedList } from './LinkedList'
+export * from './interface';
+export { LinkedList } from './LinkedList';

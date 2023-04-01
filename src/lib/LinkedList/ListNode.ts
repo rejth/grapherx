@@ -1,4 +1,4 @@
-import { IListNode } from "./interface";
+import { IListNode } from './interface';
 
 export class ListNode<T = unknown> implements IListNode<T> {
   value: T;

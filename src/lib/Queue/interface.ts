@@ -7,7 +7,7 @@ export interface ISimpleQueue<T> {
   shift(): T | undefined;
 }
 
-export interface IDeque<T> extends ISimpleQueue<T>{
+export interface IDeque<T> extends ISimpleQueue<T> {
   unshift(value: T): void;
   pop(): T | undefined;
 }

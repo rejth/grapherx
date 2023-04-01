@@ -1,5 +1,5 @@
-import { ILinkedList, LinkedList } from "../LinkedList";
-import { ISimpleQueue } from "./interface";
+import { ILinkedList, LinkedList } from '../LinkedList';
+import { ISimpleQueue } from './interface';
 
 export class SimpleQueue<T = unknown> implements ISimpleQueue<T> {
   protected queue: ILinkedList<T>;

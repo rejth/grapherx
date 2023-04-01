@@ -16,8 +16,8 @@ Available features with the algorithmic complexity:
 - [ ] Remove Edge - `O(E)`
 - [x] Breadth First search
 - [x] Depth First search
-- [ ] Detect cycles in Graph
-- [ ] Find the shortest path between two Vertices
+- [x] Detect cycles in Graph
+- [x] Find the shortest path between two Vertices
 - [ ] Topological sort
 
 ## Get Started

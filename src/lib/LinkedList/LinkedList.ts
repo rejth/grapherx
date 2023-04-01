@@ -1,5 +1,5 @@
-import { ILinkedList, IListNode } from "./interface";
-import { ListNode } from "./ListNode";
+import { ILinkedList, IListNode } from './interface';
+import { ListNode } from './ListNode';
 
 export class LinkedList<T = unknown> implements ILinkedList<T> {
   #first: IListNode<T> | null;

@@ -1,4 +1,4 @@
-import { IStack } from "./interface";
+import { IStack } from './interface';
 
 export class Stack<T> implements IStack<T> {
   stack: T[];

@@ -1,6 +1,6 @@
-import {IGraph, TGraphCycleInfo, TraversalColors, TVertex} from "./interface";
-import {Vertex} from "./Vertex";
-import {Deque, IDeque} from "../../lib";
+import { IGraph, TGraphCycleInfo, TraversalColors, TVertex } from './interface';
+import { Vertex } from './Vertex';
+import { Deque, IDeque, Stack, IStack } from '../../lib';
 
 export class Graph<T = unknown> implements IGraph<T> {
   #vertices: TVertex<T>[];
@@ -72,8 +72,10 @@ export class Graph<T = unknown> implements IGraph<T> {
   }
 
   depthFirstSearch(): number[] {
-    const stack: IterableIterator<TVertex<T>>[] = [this.#getIterator(this.vertices)];
+    const stack: IStack<IterableIterator<TVertex<T>>> = new Stack();
     const traversal: number[] = [];
+
+    stack.push(this.#getIterator(this.vertices));
 
     while (stack.length) {
       const iterator = stack.pop();
@@ -115,7 +117,7 @@ export class Graph<T = unknown> implements IGraph<T> {
       if (node.traversalColor === TraversalColors.WHITE) {
         yield* this.#generateVertices(node);
       } else if (node.traversalColor === TraversalColors.BLACK) {
-        error = `A cycle has been found. Check the node with uuid: ${node.uuid}, index: ${node.index}`
+        error = `A cycle has been found. Check the node with uuid: ${node.uuid}, index: ${node.index}`;
         throw new Error(error);
       }
     }
@@ -125,17 +127,19 @@ export class Graph<T = unknown> implements IGraph<T> {
 
   #depthFirstTraversal(): IterableIterator<TVertex<T> | null> {
     const generator = this.#generateVertices(this.vertices[0]);
+
     return {
-      [Symbol.iterator](): IterableIterator<TVertex<T> | null>  {
+      [Symbol.iterator](): IterableIterator<TVertex<T> | null> {
         return this;
       },
+
       next(): IteratorResult<TVertex<T> | null> {
         return generator.next();
-      }
-    }
+      },
+    };
   }
 
-  detectCycles(): TGraphCycleInfo<T> | boolean  {
+  detectCycles(): TGraphCycleInfo<T> | boolean {
     const iterator = this.#depthFirstTraversal();
     const subGraph: TVertex<T>[] = [];
 
@@ -143,22 +147,45 @@ export class Graph<T = unknown> implements IGraph<T> {
       for (const vertex of iterator) {
         if (vertex) subGraph.push(vertex);
       }
-    } catch(e: any) {
-      return { cycleIsDetected: true, errorMessage: String(e), subGraph }
+    } catch (e: any) {
+      return { cycleIsDetected: true, errorMessage: String(e), subGraph };
     }
 
     return false;
   }
 
-  findShortestPath(): void {
-    return;
+  findShortestPath(sourceIndex: number, targetIndex: number): number {
+    const queue: IDeque<TVertex<T>> = new Deque();
+    let depthLevel = 0;
+
+    this.vertices[sourceIndex].visited = true;
+    queue.push(this.vertices[sourceIndex]);
+
+    while (queue.length) {
+      const vertex = queue.shift();
+      if (!vertex) return depthLevel;
+
+      for (const adjacent of vertex.edges.nodes) {
+        if (adjacent && !adjacent.value.visited) {
+          const id = adjacent.value.index;
+          this.vertices[id].visited = true;
+          if (id === targetIndex) return ++depthLevel;
+          queue.push(this.vertices[id]);
+        }
+      }
+
+      if (vertex.edges.length !== 0) depthLevel++;
+    }
+
+    for (const node of this.vertices) {
+      node.visited = false;
+    }
+
+    return depthLevel;
   }
 
-  // TODO: add take method and apply in detectCycles method to return subgraph
-  // TODO: add filter method
-
   printGraph(): void {
-    console.log(">>Adjacency List of the Graph<<");
+    console.log('>>Adjacency List of the Graph<<');
 
     for (let i = 0; i < this.#verticesCount; i++) {
       const vertex = this.vertices[i];
@@ -168,9 +195,8 @@ export class Graph<T = unknown> implements IGraph<T> {
         for (const value of vertex.edges.values) {
           process.stdout.write(`[${String(value.value)}] -> `);
         }
-
       }
-      console.log("null");
+      console.log('null');
     }
   }
 }

@@ -1,4 +1,4 @@
-import { ILinkedList } from "../../lib";
+import { ILinkedList } from '../../lib';
 
 export interface IGraph<T> {
   get vertices(): TVertex<T>[];
@@ -8,7 +8,7 @@ export interface IGraph<T> {
   breadthFirstSearch(): number[];
   depthFirstSearch(): number[];
   detectCycles(): TGraphCycleInfo<T> | boolean;
-  findShortestPath(): void;
+  findShortestPath(sourceIndex: number, targetIndex: number): number;
   printGraph(): void;
 }
 
@@ -30,5 +30,5 @@ export type TVertex<T> = {
 export const enum TraversalColors {
   WHITE = 'WHITE',
   GREY = 'GREY',
-  BLACK = 'BLACK'
+  BLACK = 'BLACK',
 }

@@ -1,7 +1,7 @@
 {
   "name": "grapherx",
   "version": "1.0.0",
-  "description": "",
+  "description": "Simple library for work with directed acyclic graphs",
   "main": "./dist/src/index.js",
   "types": "./types/src/types.d.ts",
   "type": "commonjs",
@@ -10,10 +10,18 @@
     "demo": "ts-node src/model/Graph/__tests__/demo.ts",
     "declarations": "ttsc --emitDeclarationOnly",
     "test": "jest --runInBand --colors --config jest.config.ts",
-    "lint": "eslint ./src/**",
-    "lint:fix": "eslint ./src/** --fix",
+    "lint": "eslint src/**",
+    "lint:fix": "eslint src/** --fix",
+    "prettier:fix": "prettier src/**/*.{ts,js} --write",
     "check-updates": "npx npm-check-updates",
-    "update-packages": "npx npm-check-updates -u"
+    "update-packages": "npx npm-check-updates -u",
+    "prepare": "husky install"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,js}": [
+      "npm run prettier:fix",
+      "npm run lint:fix"
+    ]
   },
   "author": "Ilya Kirsanov",
   "license": "ISC",
@@ -25,10 +33,15 @@
     "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^5.30.7",
     "@typescript-eslint/parser": "^5.30.7",
-    "eslint": "^8.20.0",
+    "eslint": "^8.31.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "husky": "^8.0.3",
     "jest": "^29.2.2",
+    "lint-staged": "^13.2.0",
     "np": "^7.6.2",
     "npm-check-updates": "^16.0.0",
+    "prettier": "^2.8.7",
     "ts-jest": "^29.0.3",
     "ts-node": "^10.9.1",
     "ttypescript": "^1.5.13",

@@ -1,5 +1,5 @@
-import { IDeque } from "./interface";
-import { SimpleQueue } from "./SimpleQueue";
+import { IDeque } from './interface';
+import { SimpleQueue } from './SimpleQueue';
 
 export class Deque<T = unknown> extends SimpleQueue<T> implements IDeque<T> {
   constructor() {
