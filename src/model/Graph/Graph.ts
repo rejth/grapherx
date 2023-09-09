@@ -1,6 +1,6 @@
 import { IGraph, TVertex } from './interface';
 import { Vertex } from './Vertex';
-import { Deque, IDeque, Stack, IStack, SimpleQueue, ISimpleQueue } from '../../lib';
+import { Stack, IStack, SimpleQueue, ISimpleQueue } from '../../lib';
 
 export class Graph<T = unknown> implements IGraph<T> {
   #vertices: TVertex<T>[];
