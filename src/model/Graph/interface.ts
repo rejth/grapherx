@@ -7,16 +7,12 @@ export interface IGraph<T> {
   updateVertex(index: number, newValue: T): Iterable<TVertex<T>>;
   breadthFirstSearch(): number[];
   depthFirstSearch(): number[];
-  detectCycles(): TGraphCycleInfo<T> | boolean;
+  depthFirstTraversal(): IterableIterator<TVertex<T>>;
+  detectCycle(): boolean;
   findShortestPath(sourceIndex: number, targetIndex: number): number;
+  mapGraphOver(): Map<string, TVertex<T>[]>;
   printGraph(): void;
 }
-
-export type TGraphCycleInfo<T> = {
-  cycleIsDetected: boolean;
-  errorMessage: string;
-  subGraph: TVertex<T>[];
-};
 
 export type TVertex<T> = {
   uuid: string;
@@ -24,11 +20,4 @@ export type TVertex<T> = {
   value: T | null;
   edges: ILinkedList<TVertex<T>>;
   visited: boolean;
-  traversalColor: TraversalColors;
 };
-
-export const enum TraversalColors {
-  WHITE = 'WHITE',
-  GREY = 'GREY',
-  BLACK = 'BLACK',
-}

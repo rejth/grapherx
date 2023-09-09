@@ -1,38 +1,91 @@
 import { Graph } from '../Graph';
 
-const graph = new Graph<string>(5);
+const tasks = [
+  {
+    id: '0',
+    specification: {
+      dependsOn: [],
+      id: 'RELOAD_PATIENT_DATA',
+    },
+  },
+  {
+    id: '1',
+    specification: {
+      dependsOn: ['RELOAD_PATIENT_DATA'],
+      id: 'RELOAD_MATCHED_TREATMENTS',
+    },
+  },
+  {
+    id: '2',
+    specification: {
+      dependsOn: ['RELOAD_PATIENT_DATA'],
+      id: 'RELOAD_COMPLEX_MEASURES',
+    },
+  },
+  {
+    id: '3',
+    specification: {
+      dependsOn: ['RELOAD_MATCHED_TREATMENTS', 'RELOAD_COMPLEX_MEASURES'],
+      id: 'RELOAD_MATCHED_BIOMARKERS',
+    },
+  },
+  {
+    id: '4',
+    specification: {
+      dependsOn: ['RELOAD_MATCHED_TREATMENTS', 'RELOAD_COMPLEX_MEASURES'],
+      id: 'RELOAD_SIGNALING_BIOMARKERS',
+    },
+  },
+  {
+    id: '5',
+    specification: {
+      dependsOn: ['RELOAD_MATCHED_BIOMARKERS', 'RELOAD_SIGNALING_BIOMARKERS'],
+      id: 'RELOAD_MATCHED_NCCN_GUIDELINE',
+    },
+  },
+  {
+    id: '6',
+    specification: {
+      dependsOn: ['RELOAD_MATCHED_NCCN_GUIDELINE'],
+      id: 'RELOAD_MATCHED_CONTRAINDICATIONS',
+    },
+  },
+  {
+    id: '7',
+    specification: {
+      dependsOn: ['RELOAD_MATCHED_NCCN_GUIDELINE'],
+      id: 'RELOAD_NCCN_CLINICAL_EVIDENCE',
+    },
+  },
+  {
+    id: '8',
+    specification: {
+      dependsOn: ['RELOAD_MATCHED_CONTRAINDICATIONS'],
+      id: 'PULL_MATCHED_TREATMENTS',
+    },
+  },
+];
 
-graph.addVertex(0, 'A');
-graph.addVertex(1, 'B');
-graph.addVertex(2, 'C');
-graph.addVertex(3, 'D');
-graph.addVertex(4, 'E');
+const graph = new Graph<string>(tasks.length);
 
-graph.addEdge(0, 1);
-graph.addEdge(0, 2);
-graph.addEdge(0, 4);
-graph.addEdge(1, 3);
-graph.addEdge(2, 3);
+tasks.forEach((task, i) => {
+  graph.addVertex(i, task.specification.id);
+});
 
-const edgesB = graph.updateVertex(1, 'updated value B');
-console.log('edges B: ', [...edgesB]);
-
-const edgesA = graph.updateVertex(0, 'updated value A');
-console.log('edges A: ', [...edgesA]);
+tasks.forEach((task, i) => {
+  const { id } = task.specification;
+  const dependent = tasks.filter((el) => el.specification.dependsOn.includes(id));
+  dependent.forEach((el) => graph.addEdge(i, +el.id));
+});
 
 graph.printGraph();
+console.log(graph.mapGraphOver());
 
-const traversalBreadth = graph.breadthFirstSearch();
-console.log('traversalBreadth: ', traversalBreadth);
+console.log(graph.breadthFirstSearch());
+console.log(graph.depthFirstSearch());
 
-const traversalDepth = graph.depthFirstSearch();
-console.log('traversalDepth: ', traversalDepth);
+for (const node of graph.depthFirstTraversal()) {
+  console.log(node);
+}
 
-// cycle
-graph.addEdge(3, 0);
-
-const result = graph.detectCycles();
-console.log(result);
-
-const edgesCount = graph.findShortestPath(0, 3);
-console.log(edgesCount);
+console.log(graph.findShortestPath(2, 6));

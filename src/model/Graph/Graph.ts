@@ -1,6 +1,6 @@
-import { IGraph, TGraphCycleInfo, TraversalColors, TVertex } from './interface';
+import { IGraph, TVertex } from './interface';
 import { Vertex } from './Vertex';
-import { Deque, IDeque, Stack, IStack } from '../../lib';
+import { Deque, IDeque, Stack, IStack, SimpleQueue, ISimpleQueue } from '../../lib';
 
 export class Graph<T = unknown> implements IGraph<T> {
   #vertices: TVertex<T>[];
@@ -42,30 +42,27 @@ export class Graph<T = unknown> implements IGraph<T> {
   }
 
   breadthFirstSearch(): number[] {
-    const queue: IDeque<TVertex<T>> = new Deque();
+    const queue: ISimpleQueue<TVertex<T>> = new SimpleQueue();
+    const visited: Set<string> = new Set();
     const traversal: number[] = [];
 
-    this.vertices[0].visited = true;
-    queue.push(this.vertices[0]);
-    traversal.push(this.vertices[0].index);
+    const visitNode = (index: number): void => {
+      visited.add(this.vertices[index].uuid);
+      queue.push(this.vertices[index]);
+      traversal.push(index);
+    };
+
+    visitNode(0);
 
     while (queue.length) {
       const vertex = queue.shift();
       if (!vertex) return traversal;
 
-      for (const adjacent of vertex.edges.nodes) {
-        if (adjacent && !adjacent.value.visited) {
-          const id = adjacent.value.index;
-          this.vertices[id].visited = true;
-
-          queue.push(this.vertices[id]);
-          traversal.push(id);
+      for (const adjacent of vertex.edges.values) {
+        if (adjacent && !visited.has(adjacent.uuid)) {
+          visitNode(adjacent.index);
         }
       }
-    }
-
-    for (const node of this.vertices) {
-      node.visited = false;
     }
 
     return traversal;
@@ -73,6 +70,7 @@ export class Graph<T = unknown> implements IGraph<T> {
 
   depthFirstSearch(): number[] {
     const stack: IStack<IterableIterator<TVertex<T>>> = new Stack();
+    const visited: Set<string> = new Set();
     const traversal: number[] = [];
 
     stack.push(this.#getIterator(this.vertices));
@@ -82,9 +80,8 @@ export class Graph<T = unknown> implements IGraph<T> {
       if (!iterator) return traversal;
 
       for (const vertex of iterator) {
-        if (vertex && !vertex.visited) {
-          const id = vertex.index;
-          this.vertices[id].visited = true;
+        if (vertex && !visited.has(vertex.uuid)) {
+          visited.add(vertex.uuid);
 
           const adjacentVertices = Array.from(vertex.edges.values);
 
@@ -96,107 +93,108 @@ export class Graph<T = unknown> implements IGraph<T> {
       }
     }
 
-    for (const node of this.vertices) {
-      node.visited = false;
-    }
-
     return traversal;
   }
 
-  *#generateVertices(vertex: TVertex<T>): Generator<TVertex<T> | null> {
-    const id = vertex.index;
-    let error = '';
+  detectCycle(): boolean {
+    const visited: Array<boolean> = new Array(this.vertices.length).fill(false);
+    const recNodes: Array<boolean> = new Array(this.vertices.length).fill(false);
 
-    this.vertices[id].traversalColor = TraversalColors.GREY;
-    yield vertex;
+    const detect = (i: number, visited: Array<boolean>, recNodes: Array<boolean>): boolean => {
+      if (!visited[i]) {
+        const node = this.vertices[i];
+        visited[i] = true;
+        recNodes[i] = true;
 
-    const adjacentVertices = Array.from(vertex.edges.values);
-    if (!adjacentVertices || adjacentVertices.length === 0) return;
-
-    for (const node of adjacentVertices) {
-      if (node.traversalColor === TraversalColors.WHITE) {
-        yield* this.#generateVertices(node);
-      } else if (node.traversalColor === TraversalColors.BLACK) {
-        error = `A cycle has been found. Check the node with uuid: ${node.uuid}, index: ${node.index}`;
-        throw new Error(error);
+        for (const adjacent of node.edges.values) {
+          const j = adjacent.index;
+          if (visited[j] && recNodes[j]) return true;
+          if (!visited[j] && detect(j, visited, recNodes)) return true;
+        }
       }
-    }
 
-    this.vertices[id].traversalColor = TraversalColors.BLACK;
+      recNodes[i] = false;
+      return false;
+    };
+
+    this.vertices.forEach((_, index) => {
+      if (detect(index, visited, recNodes)) return true;
+    });
+
+    return false;
   }
 
-  #depthFirstTraversal(): IterableIterator<TVertex<T> | null> {
-    const generator = this.#generateVertices(this.vertices[0]);
+  *#depthFirstTraversalGenerator(vertex: TVertex<T>): Generator<TVertex<T>> {
+    const id = vertex.index;
+    this.vertices[id].visited = true;
+    yield vertex;
+
+    if (!vertex.edges.length) return;
+
+    for (const node of vertex.edges.values) {
+      if (!node.visited) yield* this.#depthFirstTraversalGenerator(node);
+    }
+  }
+
+  depthFirstTraversal(): IterableIterator<TVertex<T>> {
+    const firstNode = this.vertices[0];
+    const generator = this.#depthFirstTraversalGenerator(firstNode);
 
     return {
-      [Symbol.iterator](): IterableIterator<TVertex<T> | null> {
+      [Symbol.iterator](): IterableIterator<TVertex<T>> {
         return this;
       },
-
-      next(): IteratorResult<TVertex<T> | null> {
+      next(): IteratorResult<TVertex<T>> {
         return generator.next();
       },
     };
   }
 
-  detectCycles(): TGraphCycleInfo<T> | boolean {
-    const iterator = this.#depthFirstTraversal();
-    const subGraph: TVertex<T>[] = [];
-
-    try {
-      for (const vertex of iterator) {
-        if (vertex) subGraph.push(vertex);
-      }
-    } catch (e: any) {
-      return { cycleIsDetected: true, errorMessage: String(e), subGraph };
-    }
-
-    return false;
-  }
-
   findShortestPath(sourceIndex: number, targetIndex: number): number {
-    const queue: IDeque<TVertex<T>> = new Deque();
+    const queue: ISimpleQueue<TVertex<T>> = new SimpleQueue();
+    const visited: Set<string> = new Set();
+    const sourceNode = this.vertices[sourceIndex];
+
     let depthLevel = 0;
 
-    this.vertices[sourceIndex].visited = true;
-    queue.push(this.vertices[sourceIndex]);
+    visited.add(sourceNode.uuid);
+    queue.push(sourceNode);
 
     while (queue.length) {
       const vertex = queue.shift();
       if (!vertex) return depthLevel;
 
-      for (const adjacent of vertex.edges.nodes) {
-        if (adjacent && !adjacent.value.visited) {
-          const id = adjacent.value.index;
-          this.vertices[id].visited = true;
-          if (id === targetIndex) return ++depthLevel;
-          queue.push(this.vertices[id]);
+      for (const adjacent of vertex.edges.values) {
+        if (adjacent && !visited.has(adjacent.uuid)) {
+          visited.add(adjacent.uuid);
+          if (adjacent.index === targetIndex) return depthLevel;
+          queue.push(adjacent);
         }
       }
 
-      if (vertex.edges.length !== 0) depthLevel++;
-    }
-
-    for (const node of this.vertices) {
-      node.visited = false;
+      if (vertex.edges.length > 0) depthLevel++;
     }
 
     return depthLevel;
   }
 
+  mapGraphOver(): Map<string, TVertex<T>[]> {
+    return this.vertices.reduce((acc: Map<string, TVertex<T>[]>, vertex) => {
+      return acc.set(vertex.uuid, [...vertex.edges.values]);
+    }, new Map());
+  }
+
   printGraph(): void {
     console.log('>>Adjacency List of the Graph<<');
 
-    for (let i = 0; i < this.#verticesCount; i++) {
-      const vertex = this.vertices[i];
+    this.vertices.forEach((node, index) => {
+      process.stdout.write(`|id: ${String(index)}, value: ${String(node.value)}| => `);
 
-      if (vertex.value) {
-        process.stdout.write(`|id: ${String(i)}, value: ${String(vertex.value)}| => `);
-        for (const value of vertex.edges.values) {
-          process.stdout.write(`[${String(value.value)}] -> `);
-        }
-      }
+      [...node.edges.values].forEach((adjacent) => {
+        process.stdout.write(`[${String(adjacent.value)}] -> `);
+      });
+
       console.log('null');
-    }
+    });
   }
 }
