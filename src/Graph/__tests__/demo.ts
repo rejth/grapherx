@@ -84,8 +84,12 @@ console.log(graph.mapGraphOver());
 console.log(graph.breadthFirstSearch());
 console.log(graph.depthFirstSearch());
 
-for (const node of graph.depthFirstTraversal()) {
+for (const node of graph.depthFirstTraversal(0)) {
   console.log(node);
 }
 
 console.log(graph.findShortestPath(2, 6));
+console.log(graph.findMotherVertex());
+
+console.log(graph.removeVertex(2));
+console.log(graph.removeEdge(0, 1));

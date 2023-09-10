@@ -1,4 +1,4 @@
-import { ILinkedList } from '../../lib';
+import { ILinkedList } from '../LinkedList';
 
 export interface IGraph<T> {
   get vertices(): TVertex<T>[];
@@ -7,9 +7,12 @@ export interface IGraph<T> {
   updateVertex(index: number, newValue: T): Iterable<TVertex<T>>;
   breadthFirstSearch(): number[];
   depthFirstSearch(): number[];
-  depthFirstTraversal(): IterableIterator<TVertex<T>>;
+  depthFirstTraversal(startIndex: number): IterableIterator<TVertex<T>>;
   detectCycle(): boolean;
   findShortestPath(sourceIndex: number, targetIndex: number): number;
+  findMotherVertex(): TVertex<T> | undefined;
+  removeVertex(index: number): TVertex<T> | undefined;
+  removeEdge(sourceNodeIndex: number, targetNodeIndex: number): TVertex<T> | undefined;
   mapGraphOver(): Map<string, TVertex<T>[]>;
   printGraph(): void;
 }

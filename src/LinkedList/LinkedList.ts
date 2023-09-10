@@ -117,6 +117,39 @@ export class LinkedList<T = unknown> implements ILinkedList<T> {
     return currentFirst;
   }
 
+  searchByValue(value: T): IListNode<T> | undefined {
+    if (!this.first) return undefined;
+    let current = this.first;
+
+    while (current) {
+      if (JSON.stringify(current.value) === JSON.stringify(value)) return current;
+      current = current.next!;
+    }
+
+    return undefined;
+  }
+
+  deleteByIndex(index: number): IListNode<T> | undefined {
+    if (!this.first) return undefined;
+    let current = this.first;
+    let counter = 0;
+
+    while (current) {
+      counter++;
+      if (index === counter) {
+        const deleted = current;
+        if (current?.next && current?.prev) {
+          current.next.prev = deleted.prev;
+          current.prev.next = deleted.next;
+        }
+        return deleted;
+      }
+      current = current.next!;
+    }
+
+    return undefined;
+  }
+
   get nodes(): Iterable<IListNode<T>> {
     let currentNode = this.first;
     return {

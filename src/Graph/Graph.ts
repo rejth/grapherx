@@ -1,6 +1,9 @@
+import { LinkedList } from '../LinkedList';
+import { ISimpleQueue, SimpleQueue } from '../Queue';
+import { IStack, Stack } from '../Stack';
+
 import { IGraph, TVertex } from './interface';
 import { Vertex } from './Vertex';
-import { Stack, IStack, SimpleQueue, ISimpleQueue } from '../../lib';
 
 export class Graph<T = unknown> implements IGraph<T> {
   #vertices: TVertex<T>[];
@@ -124,21 +127,23 @@ export class Graph<T = unknown> implements IGraph<T> {
     return false;
   }
 
-  *#depthFirstTraversalGenerator(vertex: TVertex<T>): Generator<TVertex<T>> {
-    const id = vertex.index;
-    this.vertices[id].visited = true;
+  *#depthFirstTraversalGenerator(
+    vertex: TVertex<T>,
+    visited: Set<string> = new Set(),
+  ): Generator<TVertex<T>> {
+    visited.add(vertex.uuid);
     yield vertex;
 
     if (!vertex.edges.length) return;
 
     for (const node of vertex.edges.values) {
-      if (!node.visited) yield* this.#depthFirstTraversalGenerator(node);
+      if (!visited.has(node.uuid)) yield* this.#depthFirstTraversalGenerator(node, visited);
     }
   }
 
-  depthFirstTraversal(): IterableIterator<TVertex<T>> {
-    const firstNode = this.vertices[0];
-    const generator = this.#depthFirstTraversalGenerator(firstNode);
+  depthFirstTraversal(startIndex: number): IterableIterator<TVertex<T>> {
+    const startNode = this.vertices[startIndex];
+    const generator = this.#depthFirstTraversalGenerator(startNode);
 
     return {
       [Symbol.iterator](): IterableIterator<TVertex<T>> {
@@ -176,6 +181,39 @@ export class Graph<T = unknown> implements IGraph<T> {
     }
 
     return depthLevel;
+  }
+
+  // the mother vertex is one from which all other vertices are reachable
+  // there can be multiple mother vertices, but we need to return the first one
+  findMotherVertex(): TVertex<T> | undefined {
+    for (const vertex of this.vertices) {
+      const traversal = [...this.depthFirstTraversal(vertex.index)];
+      if (traversal.length === this.vertices.length) return vertex;
+    }
+
+    return undefined;
+  }
+
+  removeVertex(index: number): TVertex<T> | undefined {
+    if (index < 0 || index > this.#verticesCount) return undefined;
+
+    const deleted = this.vertices.splice(index, 1);
+    this.vertices.forEach((node, i) => {
+      this.removeEdge(i, index);
+    });
+
+    return deleted[0];
+  }
+
+  removeEdge(sourceNodeIndex: number, targetNodeIndex: number): TVertex<T> | undefined {
+    const deleted = this.vertices[sourceNodeIndex].edges.deleteByIndex(targetNodeIndex);
+    if (!deleted) return undefined;
+
+    const sourceVertex = this.vertices[sourceNodeIndex];
+    sourceVertex.edges = new LinkedList();
+    sourceVertex.edges.insertFirst(deleted.value);
+
+    return sourceVertex;
   }
 
   mapGraphOver(): Map<string, TVertex<T>[]> {

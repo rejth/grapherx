@@ -4,6 +4,8 @@ export interface ILinkedList<T> {
   insertLast(value: T): void;
   deleteFirst(): IListNode<T> | undefined;
   deleteLast(): IListNode<T> | undefined;
+  deleteByIndex(index: number): IListNode<T> | undefined;
+  searchByValue(value: T): IListNode<T> | undefined;
   get first(): IListNode<T> | null;
   get last(): IListNode<T> | null;
   get nodes(): Iterable<IListNode<T>>;

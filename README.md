@@ -12,12 +12,13 @@ Available features with the algorithmic complexity:
 - [x] Add Vertex - `O(1)`
 - [x] Add Edge - `O(1)`
 - [x] Update Vertex and get adjacent Vertices - `O(1)`
-- [ ] Remove Vertex - `O(V + E)`
-- [ ] Remove Edge - `O(E)`
+- [x] Remove Vertex - `O(V + E)`
+- [x] Remove Edge - `O(E)`
 - [x] Breadth First search - `O(V + E)`
 - [x] Depth First search - `O(V + E)`
 - [x] Detect cycles in Graph - `O(V + E)`
 - [x] Find the shortest path between two Vertices - `O(V + E)`
+- [x] Find Mother Vertex - `O(V(V + E))`
 
 ## Get Started
 

@@ -1,7 +1,7 @@
 import { v4 as uuid } from 'uuid';
 
 import { TVertex } from './interface';
-import { ILinkedList, LinkedList } from '../../lib';
+import { ILinkedList, LinkedList } from '../LinkedList';
 
 export class Vertex<T = unknown> implements TVertex<T> {
   uuid: string;
