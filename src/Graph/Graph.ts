@@ -183,8 +183,8 @@ export class Graph<T = unknown> implements IGraph<T> {
     return depthLevel;
   }
 
-  // the mother vertex is one from which all other vertices are reachable
-  // there can be multiple mother vertices, but we need to return the first one
+  // The mother vertex is one from which all other vertices are reachable.
+  // There can be multiple mother vertices, but we need to return the first one
   findMotherVertex(): TVertex<T> | undefined {
     for (const vertex of this.vertices) {
       const traversal = [...this.depthFirstTraversal(vertex.index)];
@@ -192,6 +192,12 @@ export class Graph<T = unknown> implements IGraph<T> {
     }
 
     return undefined;
+  }
+
+  // If there is no repeated sequence of edges and vertices between the source and the destination vertex then the path exists between these two vertices.
+  checkPath(sourceIndex: number, targetIndex: number): boolean {
+    const traversal = [...this.depthFirstTraversal(sourceIndex)];
+    return traversal.map((node) => node.index).includes(targetIndex);
   }
 
   removeVertex(index: number): TVertex<T> | undefined {

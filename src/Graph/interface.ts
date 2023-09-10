@@ -2,17 +2,18 @@ import { ILinkedList } from '../LinkedList';
 
 export interface IGraph<T> {
   get vertices(): TVertex<T>[];
-  addVertex(index: number, value: T): void;
-  addEdge(sourceIndex: number, targetIndex: number): void;
+  addVertex(nodeIndex: number, value: T): void;
+  addEdge(sourceNodeIndex: number, targetNodeIndex: number): void;
   updateVertex(index: number, newValue: T): Iterable<TVertex<T>>;
   breadthFirstSearch(): number[];
   depthFirstSearch(): number[];
-  depthFirstTraversal(startIndex: number): IterableIterator<TVertex<T>>;
+  depthFirstTraversal(startNodeIndex: number): IterableIterator<TVertex<T>>;
   detectCycle(): boolean;
-  findShortestPath(sourceIndex: number, targetIndex: number): number;
+  findShortestPath(sourceNodeIndex: number, targetNodeIndex: number): number;
   findMotherVertex(): TVertex<T> | undefined;
   removeVertex(index: number): TVertex<T> | undefined;
   removeEdge(sourceNodeIndex: number, targetNodeIndex: number): TVertex<T> | undefined;
+  checkPath(sourceNodeIndex: number, targetNodeIndex: number): boolean;
   mapGraphOver(): Map<string, TVertex<T>[]>;
   printGraph(): void;
 }

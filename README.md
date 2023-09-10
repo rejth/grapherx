@@ -18,6 +18,7 @@ Available features with the algorithmic complexity:
 - [x] Depth First search - `O(V + E)`
 - [x] Detect cycles in Graph - `O(V + E)`
 - [x] Find the shortest path between two Vertices - `O(V + E)`
+- [x] Check if a path exists between two Vertices - `O(V + E)`
 - [x] Find Mother Vertex - `O(V(V + E))`
 
 ## Get Started
