@@ -155,6 +155,15 @@ export class Graph<T = unknown> implements IGraph<T> {
     };
   }
 
+  /*
+    Breadth first search comes to rescue.
+    The idea is to use a simple queue to traverse a graph and a depth level counter to store a number of edges we've passed.
+    So we traverse the graph in a loop until th queue is empty. On each iteration a node gets pulled off from the queue. Then we iterate over all adjacent nodes of that node.
+    Once we have passed all adjacent nodes of the node, we increase the depth level counter.
+    On each iteration we check if an adjacent node is equal to the target node.
+    If it is, we return the number the depth level, and it is going to be a minimal number of edges from the source node to the target.
+    If it is not, we add a new adjacent node gets put on to the queue.
+   */
   findShortestPath(sourceIndex: number, targetIndex: number): number {
     const queue: ISimpleQueue<TVertex<T>> = new SimpleQueue();
     const visited: Set<string> = new Set();
@@ -184,7 +193,7 @@ export class Graph<T = unknown> implements IGraph<T> {
   }
 
   // The mother vertex is one from which all other vertices are reachable.
-  // There can be multiple mother vertices, but we need to return the first one
+  // There can be multiple mother vertices, but we need to return the first one.
   findMotherVertex(): TVertex<T> | undefined {
     for (const vertex of this.vertices) {
       const traversal = [...this.depthFirstTraversal(vertex.index)];
