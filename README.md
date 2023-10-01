@@ -2,13 +2,12 @@
 
 Simple library for work with **directed acyclic graphs**.
 
-Graph is based on Adjacency List and provides the features below.
+A graph is based on the Adjacency List and provides the features below.
 
-The algorithmic complexity of the operation is on the right.\
 `V` - the total number of Vertices.\
 `E` - the total number of Edges in the Graph.
 
-Available features with the algorithmic complexity:
+Available features with algorithmic complexity:
 - [x] Add Vertex - `O(1)`
 - [x] Add Edge - `O(1)`
 - [x] Update Vertex and get adjacent Vertices - `O(1)`
