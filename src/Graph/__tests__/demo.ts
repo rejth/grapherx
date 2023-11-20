@@ -95,3 +95,5 @@ console.log(graph.findMotherVertex());
 // console.log(graph.removeEdge(0, 1));
 
 console.log(graph.checkPath(2, 8));
+
+console.log(graph.sortTopologically());

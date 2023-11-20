@@ -237,6 +237,14 @@ export class Graph<T = unknown> implements IGraph<T> {
     }, new Map());
   }
 
+  // Topological Sort is used to find a linear ordering of elements that have dependencies on each other.
+  // A topological ordering is possible only when the graph has no directed cycles, i.e. if the graph is a Directed Acyclic Graph (DAG).
+  // If the graph has a cycle, some vertices will have cyclic dependencies which makes it impossible to find a linear ordering among vertices.
+  sortTopologically(): number[] {
+    if (this.detectCycle()) return [];
+    return this.breadthFirstSearch();
+  }
+
   printGraph(): void {
     console.log('>>Adjacency List of the Graph<<');
 
