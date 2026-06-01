@@ -185,11 +185,7 @@ export class Graph<T = unknown> implements IGraph<T> {
 		const visited = new Array(this.#vertices.length).fill(false);
 		const recNodes = new Array(this.#vertices.length).fill(false);
 
-		const detect = (
-			i: number,
-			visited: boolean[],
-			recNodes: boolean[],
-		): boolean => {
+		const detect = (i: number, visited: boolean[], recNodes: boolean[]) => {
 			if (!visited[i]) {
 				const node = this.#vertices[i];
 				visited[i] = true;
