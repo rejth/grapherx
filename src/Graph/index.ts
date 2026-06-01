@@ -1,2 +1,2 @@
-export * from './interface';
-export { Graph } from './Graph';
+export { Graph } from "./Graph";
+export * from "./interface";
