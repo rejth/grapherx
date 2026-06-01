@@ -5,6 +5,11 @@ import { Stack } from "../Stack";
 import type { GraphSnapshot, IGraph, VertexSnapshot } from "./interface";
 import { type TVertex, Vertex } from "./Vertex";
 
+type TraversalStep<T> = {
+	vertex: TVertex<T>;
+	distance: number;
+};
+
 export class Graph<T = unknown> implements IGraph<T> {
 	#vertices: TVertex<T>[];
 
@@ -14,10 +19,6 @@ export class Graph<T = unknown> implements IGraph<T> {
 		for (let i = 0; i < verticesCount; i++) {
 			this.#vertices[i] = new Vertex<T>(i);
 		}
-	}
-
-	#getIterator(array: TVertex<T>[] = []): IterableIterator<TVertex<T>> {
-		return array.values();
 	}
 
 	#isValidIndex(index: number): boolean {
@@ -45,6 +46,59 @@ export class Graph<T = unknown> implements IGraph<T> {
 		adjacentVertices.forEach((adjacent) => {
 			vertex.edges.insertLast(adjacent);
 		});
+	}
+
+	#breadthFirstSteps(startIndex: number): TraversalStep<T>[] {
+		if (!this.#isValidIndex(startIndex)) return [];
+
+		const queue = new SimpleQueue<TraversalStep<T>>();
+		const visited = new Set<string>();
+		const traversal: TraversalStep<T>[] = [];
+		const startVertex = this.#vertices[startIndex];
+
+		visited.add(startVertex.uuid);
+		queue.push({ vertex: startVertex, distance: 0 });
+
+		while (queue.length) {
+			const step = queue.shift();
+			if (!step) return traversal;
+
+			traversal.push(step);
+
+			for (const adjacent of step.vertex.edges.values) {
+				if (visited.has(adjacent.uuid)) continue;
+
+				visited.add(adjacent.uuid);
+				queue.push({ vertex: adjacent, distance: step.distance + 1 });
+			}
+		}
+
+		return traversal;
+	}
+
+	#depthFirstVertices(startVertices: Iterable<TVertex<T>>): TVertex<T>[] {
+		const stack = new Stack<IterableIterator<TVertex<T>>>();
+		const visited = new Set<string>();
+		const traversal: TVertex<T>[] = [];
+
+		stack.push(Array.from(startVertices).values());
+
+		while (stack.length) {
+			const iterator = stack.pop();
+			if (!iterator) return traversal;
+
+			for (const vertex of iterator) {
+				if (visited.has(vertex.uuid)) continue;
+
+				visited.add(vertex.uuid);
+				traversal.push(vertex);
+				stack.push(iterator);
+				stack.push(this.#getAdjacentVertices(vertex.index).values());
+				break;
+			}
+		}
+
+		return traversal;
 	}
 
 	get size(): number {
@@ -87,60 +141,13 @@ export class Graph<T = unknown> implements IGraph<T> {
 	}
 
 	breadthFirstSearch(): number[] {
-		const queue = new SimpleQueue<TVertex<T>>();
-		const visited = new Set<string>();
-		const traversal: number[] = [];
-
-		const visitNode = (index: number): void => {
-			visited.add(this.#vertices[index].uuid);
-			queue.push(this.#vertices[index]);
-			traversal.push(index);
-		};
-
-		if (!this.#vertices.length) return traversal;
-
-		visitNode(0);
-
-		while (queue.length) {
-			const vertex = queue.shift();
-			if (!vertex) return traversal;
-
-			for (const adjacent of vertex.edges.values) {
-				if (adjacent && !visited.has(adjacent.uuid)) {
-					visitNode(adjacent.index);
-				}
-			}
-		}
-
-		return traversal;
+		return this.#breadthFirstSteps(0).map((step) => step.vertex.index);
 	}
 
 	depthFirstSearch(): number[] {
-		const stack = new Stack<IterableIterator<TVertex<T>>>();
-		const visited = new Set<string>();
-		const traversal: number[] = [];
-
-		stack.push(this.#getIterator(this.#vertices));
-
-		while (stack.length) {
-			const iterator = stack.pop();
-			if (!iterator) return traversal;
-
-			for (const vertex of iterator) {
-				if (vertex && !visited.has(vertex.uuid)) {
-					visited.add(vertex.uuid);
-
-					const adjacentVertices = Array.from(vertex.edges.values);
-
-					stack.push(iterator);
-					stack.push(this.#getIterator(adjacentVertices));
-					traversal.push(vertex.index);
-					break;
-				}
-			}
-		}
-
-		return traversal;
+		return this.#depthFirstVertices(this.#vertices).map(
+			(vertex) => vertex.index,
+		);
 	}
 
 	detectCycle(): boolean {
@@ -171,41 +178,14 @@ export class Graph<T = unknown> implements IGraph<T> {
 		return false;
 	}
 
-	*#depthFirstVertexTraversalGenerator(
-		vertex: TVertex<T>,
-		visited: Set<string> = new Set(),
-	): Generator<TVertex<T>> {
-		visited.add(vertex.uuid);
-		yield vertex;
-
-		if (!vertex.edges.length) return;
-
-		for (const node of vertex.edges.values) {
-			if (!visited.has(node.uuid))
-				yield* this.#depthFirstVertexTraversalGenerator(node, visited);
-		}
-	}
-
-	#depthFirstVertexTraversal(startIndex: number): IterableIterator<TVertex<T>> {
-		const startNode = this.#vertices[startIndex];
-		const generator = this.#depthFirstVertexTraversalGenerator(startNode);
-
-		return {
-			[Symbol.iterator](): IterableIterator<TVertex<T>> {
-				return this;
-			},
-			next(): IteratorResult<TVertex<T>> {
-				return generator.next();
-			},
-		};
-	}
-
 	*depthFirstTraversal(
 		startIndex: number,
 	): IterableIterator<VertexSnapshot<T>> {
 		if (!this.#isValidIndex(startIndex)) return;
 
-		for (const vertex of this.#depthFirstVertexTraversal(startIndex)) {
+		for (const vertex of this.#depthFirstVertices([
+			this.#vertices[startIndex],
+		])) {
 			yield this.#toSnapshot(vertex);
 		}
 	}
@@ -220,42 +200,18 @@ export class Graph<T = unknown> implements IGraph<T> {
     If it is not, we add a new adjacent node gets put on to the queue.
    */
 	findShortestPath(sourceIndex: number, targetIndex: number): number {
-		if (!this.#isValidIndex(sourceIndex) || !this.#isValidIndex(targetIndex)) {
-			return -1;
-		}
-		if (sourceIndex === targetIndex) {
-			return 0;
-		}
+		const targetStep = this.#breadthFirstSteps(sourceIndex).find(
+			(step) => step.vertex.index === targetIndex,
+		);
 
-		const queue = new SimpleQueue<{ vertex: TVertex<T>; distance: number }>();
-		const visited = new Set<string>();
-		const sourceNode = this.#vertices[sourceIndex];
-
-		visited.add(sourceNode.uuid);
-		queue.push({ vertex: sourceNode, distance: 0 });
-
-		while (queue.length) {
-			const item = queue.shift();
-			if (!item) return -1;
-
-			for (const adjacent of item.vertex.edges.values) {
-				if (adjacent && !visited.has(adjacent.uuid)) {
-					visited.add(adjacent.uuid);
-					if (adjacent.index === targetIndex) return item.distance + 1;
-					queue.push({ vertex: adjacent, distance: item.distance + 1 });
-				}
-			}
-		}
-
-		return -1;
+		return targetStep?.distance ?? -1;
 	}
 
 	// The mother vertex is one from which all other vertices are reachable.
 	// There can be multiple mother vertices, but we need to return the first one.
 	findMotherVertex(): VertexSnapshot<T> | undefined {
 		for (const vertex of this.#vertices) {
-			const traversal = [...this.#depthFirstVertexTraversal(vertex.index)];
-			if (traversal.length === this.#vertices.length)
+			if (this.#depthFirstVertices([vertex]).length === this.#vertices.length)
 				return this.#toSnapshot(vertex);
 		}
 
@@ -264,8 +220,11 @@ export class Graph<T = unknown> implements IGraph<T> {
 
 	// If there is no repeated sequence of edges and vertices between the source and the destination vertex then the path exists between these two vertices.
 	checkPath(sourceIndex: number, targetIndex: number): boolean {
-		const traversal = [...this.depthFirstTraversal(sourceIndex)];
-		return traversal.map((node) => node.index).includes(targetIndex);
+		if (!this.#isValidIndex(sourceIndex)) return false;
+
+		return this.#depthFirstVertices([this.#vertices[sourceIndex]]).some(
+			(vertex) => vertex.index === targetIndex,
+		);
 	}
 
 	removeVertex(index: number): VertexSnapshot<T> | undefined {
