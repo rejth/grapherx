@@ -1,6 +1,96 @@
 import { Graph } from "./Graph";
 
 describe("Graph", () => {
+	const createTaskGraph = (): Graph<string> => {
+		const tasks = [
+			{
+				id: "0",
+				specification: {
+					dependsOn: [],
+					id: "RELOAD_PATIENT_DATA",
+				},
+			},
+			{
+				id: "1",
+				specification: {
+					dependsOn: ["RELOAD_PATIENT_DATA"],
+					id: "RELOAD_MATCHED_TREATMENTS",
+				},
+			},
+			{
+				id: "2",
+				specification: {
+					dependsOn: ["RELOAD_PATIENT_DATA"],
+					id: "RELOAD_COMPLEX_MEASURES",
+				},
+			},
+			{
+				id: "3",
+				specification: {
+					dependsOn: ["RELOAD_MATCHED_TREATMENTS", "RELOAD_COMPLEX_MEASURES"],
+					id: "RELOAD_MATCHED_BIOMARKERS",
+				},
+			},
+			{
+				id: "4",
+				specification: {
+					dependsOn: ["RELOAD_MATCHED_TREATMENTS", "RELOAD_COMPLEX_MEASURES"],
+					id: "RELOAD_SIGNALING_BIOMARKERS",
+				},
+			},
+			{
+				id: "5",
+				specification: {
+					dependsOn: [
+						"RELOAD_MATCHED_BIOMARKERS",
+						"RELOAD_SIGNALING_BIOMARKERS",
+					],
+					id: "RELOAD_MATCHED_NCCN_GUIDELINE",
+				},
+			},
+			{
+				id: "6",
+				specification: {
+					dependsOn: ["RELOAD_MATCHED_NCCN_GUIDELINE"],
+					id: "RELOAD_MATCHED_CONTRAINDICATIONS",
+				},
+			},
+			{
+				id: "7",
+				specification: {
+					dependsOn: ["RELOAD_MATCHED_NCCN_GUIDELINE"],
+					id: "RELOAD_NCCN_CLINICAL_EVIDENCE",
+				},
+			},
+			{
+				id: "8",
+				specification: {
+					dependsOn: ["RELOAD_MATCHED_CONTRAINDICATIONS"],
+					id: "PULL_MATCHED_TREATMENTS",
+				},
+			},
+		];
+
+		const graph = new Graph<string>(tasks.length);
+
+		tasks.forEach((task, index) => {
+			graph.addVertex(index, task.specification.id);
+		});
+
+		tasks.forEach((task, index) => {
+			const { id } = task.specification;
+			const dependent = tasks.filter((item) =>
+				item.specification.dependsOn.includes(id),
+			);
+
+			dependent.forEach((item) => {
+				graph.addEdge(index, +item.id);
+			});
+		});
+
+		return graph;
+	};
+
 	it("exposes vertex snapshots without leaking mutable storage", () => {
 		const graph = new Graph<string>(2);
 
@@ -129,5 +219,24 @@ describe("Graph", () => {
 		graph.addEdge(2, 0);
 
 		expect(graph.detectCycle()).toBe(true);
+	});
+
+	it("models task dependencies through the Graph interface", () => {
+		const graph = createTaskGraph();
+
+		expect(graph.getAdjacent(0)).toEqual([
+			{ index: 2, value: "RELOAD_COMPLEX_MEASURES" },
+			{ index: 1, value: "RELOAD_MATCHED_TREATMENTS" },
+		]);
+		expect(graph.findShortestPath(2, 6)).toBe(3);
+		expect(graph.findMotherVertex()).toEqual({
+			index: 0,
+			value: "RELOAD_PATIENT_DATA",
+		});
+		expect(graph.checkPath(2, 8)).toBe(true);
+		expect(graph.sortTopologically()).toEqual(graph.breadthFirstSearch());
+		expect([...graph.mapGraphOver().keys()]).toEqual([
+			0, 1, 2, 3, 4, 5, 6, 7, 8,
+		]);
 	});
 });

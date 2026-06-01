@@ -119,12 +119,13 @@ export class LinkedList<T = unknown> implements ILinkedList<T> {
 
 	searchByValue(value: T): IListNode<T> | undefined {
 		if (!this.first) return undefined;
-		let current = this.first;
+		let current: IListNode<T> | null = this.first;
 
 		while (current) {
-			if (JSON.stringify(current.value) === JSON.stringify(value))
+			if (JSON.stringify(current.value) === JSON.stringify(value)) {
 				return current;
-			current = current.next!;
+			}
+			current = current.next;
 		}
 
 		return undefined;
@@ -132,7 +133,7 @@ export class LinkedList<T = unknown> implements ILinkedList<T> {
 
 	deleteByIndex(index: number): IListNode<T> | undefined {
 		if (!this.first) return undefined;
-		let current = this.first;
+		let current: IListNode<T> | null = this.first;
 		let counter = 0;
 
 		while (current) {
@@ -145,7 +146,7 @@ export class LinkedList<T = unknown> implements ILinkedList<T> {
 				}
 				return deleted;
 			}
-			current = current.next!;
+			current = current.next;
 		}
 
 		return undefined;
