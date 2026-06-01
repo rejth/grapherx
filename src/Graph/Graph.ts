@@ -1,6 +1,3 @@
-import { SimpleQueue } from "../Queue";
-import { Stack } from "../Stack";
-
 import { AdjacencyList } from "./AdjacencyList";
 import type { GraphSnapshot, IGraph, VertexSnapshot } from "./interface";
 import { type TVertex, Vertex } from "./Vertex";
@@ -9,6 +6,42 @@ type TraversalStep<T> = {
 	vertex: TVertex<T>;
 	distance: number;
 };
+
+class TraversalQueue<T> {
+	#items: T[] = [];
+	#nextIndex = 0;
+
+	get length(): number {
+		return this.#items.length - this.#nextIndex;
+	}
+
+	push(value: T): void {
+		this.#items.push(value);
+	}
+
+	shift(): T | undefined {
+		if (!this.length) return undefined;
+		const value = this.#items[this.#nextIndex];
+		this.#nextIndex++;
+		return value;
+	}
+}
+
+class TraversalStack<T> {
+	#items: T[] = [];
+
+	get length(): number {
+		return this.#items.length;
+	}
+
+	push(value: T): void {
+		this.#items.push(value);
+	}
+
+	pop(): T | undefined {
+		return this.#items.pop();
+	}
+}
 
 export class Graph<T = unknown> implements IGraph<T> {
 	#vertices: TVertex<T>[];
@@ -46,7 +79,7 @@ export class Graph<T = unknown> implements IGraph<T> {
 	#breadthFirstSteps(startIndex: number): TraversalStep<T>[] {
 		if (!this.#isValidIndex(startIndex)) return [];
 
-		const queue = new SimpleQueue<TraversalStep<T>>();
+		const queue = new TraversalQueue<TraversalStep<T>>();
 		const visited = new Set<string>();
 		const traversal: TraversalStep<T>[] = [];
 		const startVertex = this.#vertices[startIndex];
@@ -72,7 +105,7 @@ export class Graph<T = unknown> implements IGraph<T> {
 	}
 
 	#depthFirstVertices(startVertices: Iterable<TVertex<T>>): TVertex<T>[] {
-		const stack = new Stack<IterableIterator<TVertex<T>>>();
+		const stack = new TraversalStack<IterableIterator<TVertex<T>>>();
 		const visited = new Set<string>();
 		const traversal: TVertex<T>[] = [];
 
