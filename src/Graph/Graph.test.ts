@@ -35,6 +35,23 @@ describe("Graph", () => {
 		expect(graph.getAdjacent(0)).toEqual([{ index: 1, value: "c" }]);
 	});
 
+	it("removes incoming adjacency when a vertex is removed", () => {
+		const graph = new Graph<string>(4);
+
+		graph.setVertex(0, "a");
+		graph.setVertex(1, "b");
+		graph.setVertex(2, "c");
+		graph.setVertex(3, "d");
+		graph.addEdge(0, 2);
+		graph.addEdge(1, 2);
+		graph.addEdge(2, 3);
+
+		expect(graph.removeVertex(2)).toEqual({ index: 2, value: "c" });
+		expect(graph.getAdjacent(0)).toEqual([]);
+		expect(graph.getAdjacent(1)).toEqual([]);
+		expect(graph.getAdjacent(2)).toEqual([]);
+	});
+
 	it("returns graph snapshots keyed by vertex index", () => {
 		const graph = new Graph<string>(2);
 

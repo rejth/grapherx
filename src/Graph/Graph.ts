@@ -1,7 +1,7 @@
-import { LinkedList } from "../LinkedList";
 import { SimpleQueue } from "../Queue";
 import { Stack } from "../Stack";
 
+import { AdjacencyList } from "./AdjacencyList";
 import type { GraphSnapshot, IGraph, VertexSnapshot } from "./interface";
 import { type TVertex, Vertex } from "./Vertex";
 
@@ -12,9 +12,11 @@ type TraversalStep<T> = {
 
 export class Graph<T = unknown> implements IGraph<T> {
 	#vertices: TVertex<T>[];
+	#adjacencyList: AdjacencyList<T>;
 
 	constructor(verticesCount: number) {
 		this.#vertices = new Array(verticesCount);
+		this.#adjacencyList = new AdjacencyList<T>();
 
 		for (let i = 0; i < verticesCount; i++) {
 			this.#vertices[i] = new Vertex<T>(i);
@@ -38,14 +40,7 @@ export class Graph<T = unknown> implements IGraph<T> {
 		const vertex = this.#vertices[index];
 		if (!vertex) return [];
 
-		return [...vertex.edges.values];
-	}
-
-	#setAdjacentVertices(vertex: TVertex<T>, adjacentVertices: TVertex<T>[]) {
-		vertex.edges = new LinkedList<TVertex<T>>();
-		adjacentVertices.forEach((adjacent) => {
-			vertex.edges.insertLast(adjacent);
-		});
+		return this.#adjacencyList.adjacentTo(vertex);
 	}
 
 	#breadthFirstSteps(startIndex: number): TraversalStep<T>[] {
@@ -65,7 +60,7 @@ export class Graph<T = unknown> implements IGraph<T> {
 
 			traversal.push(step);
 
-			for (const adjacent of step.vertex.edges.values) {
+			for (const adjacent of this.#adjacencyList.adjacentTo(step.vertex)) {
 				if (visited.has(adjacent.uuid)) continue;
 
 				visited.add(adjacent.uuid);
@@ -93,7 +88,7 @@ export class Graph<T = unknown> implements IGraph<T> {
 				visited.add(vertex.uuid);
 				traversal.push(vertex);
 				stack.push(iterator);
-				stack.push(this.#getAdjacentVertices(vertex.index).values());
+				stack.push(this.#adjacencyList.adjacentTo(vertex).values());
 				break;
 			}
 		}
@@ -131,7 +126,10 @@ export class Graph<T = unknown> implements IGraph<T> {
 		if (!this.#isValidIndex(sourceIndex) || !this.#isValidIndex(targetIndex)) {
 			return false;
 		}
-		this.#vertices[sourceIndex].edges.insertFirst(this.#vertices[targetIndex]);
+		this.#adjacencyList.connect(
+			this.#vertices[sourceIndex],
+			this.#vertices[targetIndex],
+		);
 		return true;
 	}
 
@@ -160,7 +158,7 @@ export class Graph<T = unknown> implements IGraph<T> {
 				visited[i] = true;
 				recNodes[i] = true;
 
-				for (const adjacent of node.edges.values) {
+				for (const adjacent of this.#adjacencyList.adjacentTo(node)) {
 					const j = adjacent.index;
 					if (visited[j] && recNodes[j]) return true;
 					if (!visited[j] && detect(j, visited, recNodes)) return true;
@@ -236,13 +234,8 @@ export class Graph<T = unknown> implements IGraph<T> {
 
 		this.#vertices.forEach((node, currentIndex) => {
 			node.index = currentIndex;
-			this.#setAdjacentVertices(
-				node,
-				this.#getAdjacentVertices(currentIndex).filter(
-					(adjacent) => adjacent !== deletedVertex,
-				),
-			);
 		});
+		this.#adjacencyList.removeReferences(this.#vertices, deletedVertex);
 
 		return deletedSnapshot;
 	}
@@ -255,19 +248,10 @@ export class Graph<T = unknown> implements IGraph<T> {
 			return false;
 		}
 
-		const sourceVertex = this.#vertices[sourceNodeIndex];
-		const adjacentVertices = this.#getAdjacentVertices(sourceNodeIndex);
-		const nextAdjacentVertices = adjacentVertices.filter(
-			(adjacent) => adjacent.index !== targetNodeIndex,
+		return this.#adjacencyList.disconnect(
+			this.#vertices[sourceNodeIndex],
+			targetNodeIndex,
 		);
-
-		if (nextAdjacentVertices.length === adjacentVertices.length) {
-			return false;
-		}
-
-		this.#setAdjacentVertices(sourceVertex, nextAdjacentVertices);
-
-		return true;
 	}
 
 	mapGraphOver(): GraphSnapshot<T> {
@@ -292,7 +276,7 @@ export class Graph<T = unknown> implements IGraph<T> {
 				`|id: ${String(index)}, value: ${String(node.value)}| => `,
 			);
 
-			[...node.edges.values].forEach((adjacent) => {
+			this.#adjacencyList.adjacentTo(node).forEach((adjacent) => {
 				process.stdout.write(`[${String(adjacent.value)}] -> `);
 			});
 
