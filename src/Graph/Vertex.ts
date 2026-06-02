@@ -9,7 +9,6 @@ export type TVertex<T> = {
   id: VertexId
   value: T | null
   edges: ILinkedList<TVertex<T>>
-  visited: boolean
 }
 
 export class Vertex<T = unknown> implements TVertex<T> {
@@ -17,13 +16,11 @@ export class Vertex<T = unknown> implements TVertex<T> {
   id: VertexId
   value: T | null = null
   edges: ILinkedList<TVertex<T>>
-  visited: boolean
 
   constructor(id: VertexId) {
     this.uuid = uuid()
     this.id = id
     this.value = null
-    this.visited = false
     this.edges = new LinkedList<TVertex<T>>()
   }
 }

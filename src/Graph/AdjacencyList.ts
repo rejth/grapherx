@@ -26,10 +26,11 @@ export class AdjacencyList<T> {
 
   removeReferences(vertices: TVertex<T>[], deletedVertex: TVertex<T>): void {
     vertices.forEach((vertex) => {
-      this.replace(
-        vertex,
-        this.adjacentTo(vertex).filter((adjacent) => adjacent !== deletedVertex),
-      )
+      const adjacent = this.adjacentTo(vertex)
+      const filtered = adjacent.filter((v) => v.id !== deletedVertex.id)
+      if (filtered.length !== adjacent.length) {
+        this.replace(vertex, filtered)
+      }
     })
   }
 

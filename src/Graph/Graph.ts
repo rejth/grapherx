@@ -160,6 +160,7 @@ export class Graph<T = unknown> implements IGraph<T> {
     for (const id of this.#vertices.keys()) {
       if (visited.has(id)) continue
       for (const step of this.#breadthFirstSteps(id)) {
+        if (visited.has(step.vertex.id)) continue
         visited.add(step.vertex.id)
         result.push(step.vertex.id)
       }
@@ -250,9 +251,8 @@ export class Graph<T = unknown> implements IGraph<T> {
 
   removeEdge(sourceId: VertexId, targetId: VertexId): boolean {
     const source = this.#vertices.get(sourceId)
-    const target = this.#vertices.get(targetId)
-    if (!source || !target) return false
-    return this.#adjacencyList.disconnect(source, target.id)
+    if (!source) return false
+    return this.#adjacencyList.disconnect(source, targetId)
   }
 
   mapGraphOver(): GraphSnapshot<T> {
