@@ -118,10 +118,6 @@ export class Graph<T = unknown> implements IGraph<T> {
     return traversal
   }
 
-  get size(): number {
-    return this.#vertices.size
-  }
-
   get vertexCount(): number {
     return this.#vertices.size
   }
@@ -158,9 +154,18 @@ export class Graph<T = unknown> implements IGraph<T> {
   }
 
   breadthFirstSearch(): VertexId[] {
-    const firstKey = this.#vertices.keys().next().value
-    if (firstKey === undefined) return []
-    return this.#breadthFirstSteps(firstKey).map((step) => step.vertex.id)
+    const visited = new Set<VertexId>()
+    const result: VertexId[] = []
+
+    for (const id of this.#vertices.keys()) {
+      if (visited.has(id)) continue
+      for (const step of this.#breadthFirstSteps(id)) {
+        visited.add(step.vertex.id)
+        result.push(step.vertex.id)
+      }
+    }
+
+    return result
   }
 
   depthFirstSearch(): VertexId[] {
