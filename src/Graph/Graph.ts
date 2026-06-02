@@ -124,9 +124,7 @@ export class Graph<T = unknown> implements IGraph<T> {
 
   addVertex(id: VertexId, value: T): void {
     if (this.#vertices.has(id)) throw new VertexAlreadyExistsError(id)
-    const vertex = new Vertex<T>(id)
-    vertex.value = value
-    this.#vertices.set(id, vertex)
+    this.#vertices.set(id, new Vertex<T>(id, value))
   }
 
   updateVertex(id: VertexId, value: T): void {

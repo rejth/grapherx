@@ -36,7 +36,7 @@ type VertexId = string | number;
 
 type VertexSnapshot<T> = Readonly<{
   id: VertexId;
-  value: T | null;
+  value: T;
 }>;
 
 type GraphSnapshot<T> = Map<VertexId, VertexSnapshot<T>[]>;

@@ -23,7 +23,7 @@ export interface IGraph<T> {
 
 export type VertexSnapshot<T> = Readonly<{
   id: VertexId
-  value: T | null
+  value: T
 }>
 
 export type GraphSnapshot<T> = Map<VertexId, VertexSnapshot<T>[]>

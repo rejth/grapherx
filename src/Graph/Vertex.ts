@@ -7,20 +7,20 @@ import type { VertexId } from './interface'
 export type TVertex<T> = {
   uuid: string
   id: VertexId
-  value: T | null
+  value: T
   edges: ILinkedList<TVertex<T>>
 }
 
 export class Vertex<T = unknown> implements TVertex<T> {
   uuid: string
   id: VertexId
-  value: T | null = null
+  value: T
   edges: ILinkedList<TVertex<T>>
 
-  constructor(id: VertexId) {
+  constructor(id: VertexId, value: T) {
     this.uuid = uuid()
     this.id = id
-    this.value = null
+    this.value = value
     this.edges = new LinkedList<TVertex<T>>()
   }
 }
