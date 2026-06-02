@@ -1,24 +1,23 @@
 # GrapherX
 
-GrapherX is a small TypeScript library for working with directed, index-based graphs.
+GrapherX is a small TypeScript library for working with directed graphs with caller-provided vertex identifiers.
 
-Graphs are stored as adjacency lists. Callers work with vertex indices and receive readonly
-snapshots instead of mutable internal vertices.
+Graphs are stored as adjacency lists. Callers work with `VertexId` keys and receive readonly snapshots instead of mutable internal vertices.
 
 ```ts
 import { Graph } from 'grapherx';
 
-const graph = new Graph<string>(3);
+const graph = new Graph<string>();
 
-graph.setVertex(0, 'load data');
-graph.setVertex(1, 'match treatments');
-graph.setVertex(2, 'pull results');
+graph.addVertex(0, 'load data');
+graph.addVertex(1, 'match treatments');
+graph.addVertex(2, 'pull results');
 
 graph.addEdge(0, 1);
 graph.addEdge(1, 2);
 
 graph.getAdjacent(0);
-// [{ index: 1, value: "match treatments" }]
+// [{ id: 1, value: "match treatments" }]
 
 graph.findShortestPath(0, 2);
 // 2
@@ -26,33 +25,34 @@ graph.findShortestPath(0, 2);
 
 ## Model
 
-`Graph<T>` is fixed-size: the constructor creates `V` indexed vertices from `0` to `V - 1`.
-Use `setVertex` or `addVertex` to assign values to those existing vertices.
+`Graph<T>` is dynamically sized. Vertices are added individually with `addVertex(id, value)` where `id` is a caller-provided `VertexId` (`string | number`). The constructor takes no arguments.
 
-The graph is directed. It can represent a directed acyclic graph, and it can detect cycles, but
-it does not currently prevent callers from adding cyclic edges.
+The graph is directed. It can represent a directed acyclic graph, and it can detect cycles, but it does not currently prevent callers from adding cyclic edges.
 
 Public graph observations use snapshots:
 
 ```ts
+type VertexId = string | number;
+
 type VertexSnapshot<T> = Readonly<{
-  index: number;
+  id: VertexId;
   value: T | null;
 }>;
 
-type GraphSnapshot<T> = Map<number, VertexSnapshot<T>[]>;
+type GraphSnapshot<T> = Map<VertexId, VertexSnapshot<T>[]>;
 ```
+
+`addVertex` throws `VertexAlreadyExistsError` on a duplicate ID. `updateVertex` and `removeVertex` throw `VertexNotFoundError` when the ID does not exist. Both error classes are exported and catchable via `instanceof`.
 
 ## Features and Complexity
 
-`V` is the number of vertices. `E` is the number of edges. `out(v)` is the number of outgoing
-edges from a vertex.
+`V` is the number of vertices. `E` is the number of edges. `out(v)` is the number of outgoing edges from a vertex.
 
-- [x] Set vertex value: `O(1)`
+- [x] Add vertex: `O(1)`
+- [x] Update vertex value: `O(1)`
 - [x] Add edge: `O(1)`
 - [x] Get vertex snapshot: `O(1)`
 - [x] Get adjacent vertex snapshots: `O(out(v))`
-- [x] Update vertex and return adjacent snapshots: `O(out(v))`
 - [x] Remove vertex: `O(V + E)`
 - [x] Remove edge: `O(out(source))`
 - [x] Breadth-first search: `O(V + E)`
@@ -64,8 +64,6 @@ edges from a vertex.
 
 ## Current Limitations
 
-- Vertices are identified by numeric indices, not stable user-defined keys.
-- The graph is not dynamically resizable after construction.
 - Cycles are allowed at insertion time; use `detectCycle()` to check for them.
 - `sortTopologically()` currently returns breadth-first order when the graph is acyclic. It is
   not a full topological sort implementation yet.

@@ -122,7 +122,7 @@ describe('Graph', () => {
 
     graph.removeVertex(1)
     expect(graph.getVertex(1)).toBeUndefined()
-    expect(graph.size).toBe(2)
+    expect(graph.vertexCount).toBe(2)
     expect(graph.getAdjacent(0)).toEqual([{ id: 2, value: 'c' }])
   })
 
@@ -141,7 +141,7 @@ describe('Graph', () => {
     expect(graph.getVertex(2)).toBeUndefined()
     expect(graph.getAdjacent(0)).toEqual([])
     expect(graph.getAdjacent(1)).toEqual([])
-    expect(graph.getAdjacent(3)).toEqual([])
+    expect(graph.checkPath(0, 3)).toBe(false)
   })
 
   it('returns graph snapshots keyed by vertex id', () => {
@@ -349,6 +349,42 @@ describe('Graph', () => {
 
     graph.removeVertex(1)
     expect(graph.vertexCount).toBe(1)
+  })
+
+  it('addEdge returns false when source or target vertex does not exist', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+
+    expect(graph.addEdge(0, 99)).toBe(false)
+    expect(graph.addEdge(99, 0)).toBe(false)
+    expect(graph.addEdge(99, 100)).toBe(false)
+  })
+
+  it('detectCycle returns false for an acyclic graph', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+    graph.addVertex(1, 'b')
+    graph.addVertex(2, 'c')
+    graph.addEdge(0, 1)
+    graph.addEdge(1, 2)
+
+    expect(graph.detectCycle()).toBe(false)
+  })
+
+  it('sortTopologically returns empty array for a cyclic graph', () => {
+    const graph = new Graph()
+    graph.addVertex(0, null)
+    graph.addVertex(1, null)
+    graph.addVertex(2, null)
+    graph.addEdge(0, 1)
+    graph.addEdge(1, 2)
+    graph.addEdge(2, 0)
+
+    expect(graph.sortTopologically()).toEqual([])
+  })
+
+  it('breadthFirstSearch returns empty array for an empty graph', () => {
+    expect(new Graph().breadthFirstSearch()).toEqual([])
   })
 
   it('models task dependencies through the Graph interface', () => {

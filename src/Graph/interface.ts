@@ -1,7 +1,6 @@
 export type VertexId = string | number
 
 export interface IGraph<T> {
-  get size(): number
   get vertexCount(): number
   addVertex(id: VertexId, value: T): void
   updateVertex(id: VertexId, value: T): void
@@ -18,6 +17,7 @@ export interface IGraph<T> {
   removeEdge(sourceId: VertexId, targetId: VertexId): boolean
   checkPath(sourceId: VertexId, targetId: VertexId): boolean
   mapGraphOver(): GraphSnapshot<T>
+  sortTopologically(): VertexId[]
   printGraph(): void
 }
 
