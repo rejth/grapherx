@@ -122,7 +122,7 @@ describe('Graph', () => {
 
     expect(graph.removeVertex(1)).toEqual({ id: 1, value: 'b' })
     expect(graph.size).toBe(2)
-    expect(graph.getAdjacent(0)).toEqual([{ id: 1, value: 'c' }])
+    expect(graph.getAdjacent(0)).toEqual([{ id: 2, value: 'c' }])
   })
 
   it('removes incoming adjacency when a vertex is removed', () => {
@@ -219,6 +219,28 @@ describe('Graph', () => {
     graph.addEdge(2, 0)
 
     expect(graph.detectCycle()).toBe(true)
+  })
+
+  it('vertex insertion order is stable across add and remove cycles', () => {
+    const graph = new Graph<string>(4)
+    graph.setVertex(0, 'a')
+    graph.setVertex(1, 'b')
+    graph.setVertex(2, 'c')
+    graph.setVertex(3, 'd')
+
+    graph.removeVertex(1)
+
+    const keys = [...graph.mapGraphOver().keys()]
+    expect(keys).toEqual([0, 2, 3])
+
+    const snapshot0 = graph.getVertex(0)
+    const snapshot2 = graph.getVertex(2)
+    const snapshot3 = graph.getVertex(3)
+    expect(snapshot0?.id).toBe(0)
+    expect(snapshot2?.id).toBe(2)
+    expect(snapshot3?.id).toBe(3)
+
+    expect(graph.getVertex(1)).toBeUndefined()
   })
 
   it('VertexSnapshot exposes id as VertexId, not index', () => {
