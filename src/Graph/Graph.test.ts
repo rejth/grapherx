@@ -1,4 +1,5 @@
 import { Graph } from './Graph'
+import type { VertexId } from './interface'
 
 describe('Graph', () => {
   const createTaskGraph = (): Graph<string> => {
@@ -96,10 +97,13 @@ describe('Graph', () => {
     const vertex = graph.getVertex(0)
     const adjacent = graph.getAdjacent(0)
 
-    expect(vertex).toEqual({ index: 0, value: 'source' })
-    expect(adjacent).toEqual([{ index: 1, value: 'target' }])
-    expect(Object.keys(vertex ?? {}).sort()).toEqual(['index', 'value'])
-    expect(Object.keys(adjacent[0]).sort()).toEqual(['index', 'value'])
+    expect(vertex).toEqual({ id: 0, value: 'source' })
+    expect(adjacent).toEqual([{ id: 1, value: 'target' }])
+    expect(Object.keys(vertex ?? {}).sort()).toEqual(['id', 'value'])
+    expect(Object.keys(adjacent[0]).sort()).toEqual(['id', 'value'])
+
+    const id: VertexId = vertex!.id
+    expect(typeof id === 'string' || typeof id === 'number').toBe(true)
   })
 
   it('keeps graph mutation behind the Graph interface', () => {
@@ -113,11 +117,11 @@ describe('Graph', () => {
 
     expect(graph.removeEdge(0, 1)).toBe(true)
     expect(graph.removeEdge(0, 1)).toBe(false)
-    expect(graph.getAdjacent(0)).toEqual([{ index: 2, value: 'c' }])
+    expect(graph.getAdjacent(0)).toEqual([{ id: 2, value: 'c' }])
 
-    expect(graph.removeVertex(1)).toEqual({ index: 1, value: 'b' })
+    expect(graph.removeVertex(1)).toEqual({ id: 1, value: 'b' })
     expect(graph.size).toBe(2)
-    expect(graph.getAdjacent(0)).toEqual([{ index: 1, value: 'c' }])
+    expect(graph.getAdjacent(0)).toEqual([{ id: 1, value: 'c' }])
   })
 
   it('removes incoming adjacency when a vertex is removed', () => {
@@ -131,7 +135,7 @@ describe('Graph', () => {
     graph.addEdge(1, 2)
     graph.addEdge(2, 3)
 
-    expect(graph.removeVertex(2)).toEqual({ index: 2, value: 'c' })
+    expect(graph.removeVertex(2)).toEqual({ id: 2, value: 'c' })
     expect(graph.getAdjacent(0)).toEqual([])
     expect(graph.getAdjacent(1)).toEqual([])
     expect(graph.getAdjacent(2)).toEqual([])
@@ -146,7 +150,7 @@ describe('Graph', () => {
 
     expect(graph.mapGraphOver()).toEqual(
       new Map([
-        [0, [{ index: 1, value: 'target' }]],
+        [0, [{ id: 1, value: 'target' }]],
         [1, []],
       ]),
     )
@@ -162,11 +166,11 @@ describe('Graph', () => {
     graph.addEdge(1, 2)
 
     expect([...graph.depthFirstTraversal(0)]).toEqual([
-      { index: 0, value: 'a' },
-      { index: 1, value: 'b' },
-      { index: 2, value: 'c' },
+      { id: 0, value: 'a' },
+      { id: 1, value: 'b' },
+      { id: 2, value: 'c' },
     ])
-    expect(graph.findMotherVertex()).toEqual({ index: 0, value: 'a' })
+    expect(graph.findMotherVertex()).toEqual({ id: 0, value: 'a' })
     expect(graph.findShortestPath(0, 2)).toBe(2)
     expect(graph.checkPath(0, 2)).toBe(true)
   })
@@ -186,10 +190,10 @@ describe('Graph', () => {
     expect(graph.breadthFirstSearch()).toEqual([0, 1, 2, 3])
     expect(graph.depthFirstSearch()).toEqual([0, 1, 3, 2])
     expect([...graph.depthFirstTraversal(0)]).toEqual([
-      { index: 0, value: 'a' },
-      { index: 1, value: 'b' },
-      { index: 3, value: 'd' },
-      { index: 2, value: 'c' },
+      { id: 0, value: 'a' },
+      { id: 1, value: 'b' },
+      { id: 3, value: 'd' },
+      { id: 2, value: 'c' },
     ])
     expect(graph.findShortestPath(0, 3)).toBe(2)
     expect(graph.checkPath(2, 1)).toBe(false)
@@ -216,16 +220,30 @@ describe('Graph', () => {
     expect(graph.detectCycle()).toBe(true)
   })
 
+  it('VertexSnapshot exposes id as VertexId, not index', () => {
+    const graph = new Graph<string>(1)
+    graph.setVertex(0, 'hello')
+
+    const snapshot = graph.getVertex(0)
+    expect(snapshot).toBeDefined()
+    expect('id' in snapshot!).toBe(true)
+    expect('index' in snapshot!).toBe(false)
+    expect(snapshot!.id).toBe(0)
+
+    const id: VertexId = snapshot!.id
+    expect(typeof id === 'string' || typeof id === 'number').toBe(true)
+  })
+
   it('models task dependencies through the Graph interface', () => {
     const graph = createTaskGraph()
 
     expect(graph.getAdjacent(0)).toEqual([
-      { index: 2, value: 'RELOAD_COMPLEX_MEASURES' },
-      { index: 1, value: 'RELOAD_MATCHED_TREATMENTS' },
+      { id: 2, value: 'RELOAD_COMPLEX_MEASURES' },
+      { id: 1, value: 'RELOAD_MATCHED_TREATMENTS' },
     ])
     expect(graph.findShortestPath(2, 6)).toBe(3)
     expect(graph.findMotherVertex()).toEqual({
-      index: 0,
+      id: 0,
       value: 'RELOAD_PATIENT_DATA',
     })
     expect(graph.checkPath(2, 8)).toBe(true)

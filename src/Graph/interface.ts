@@ -1,3 +1,5 @@
+export type VertexId = string | number
+
 export interface IGraph<T> {
   get size(): number
   addVertex(nodeIndex: number, value: T): boolean
@@ -20,7 +22,7 @@ export interface IGraph<T> {
 }
 
 export type VertexSnapshot<T> = Readonly<{
-  index: number
+  id: VertexId
   value: T | null
 }>
 

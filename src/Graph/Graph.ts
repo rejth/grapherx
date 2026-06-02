@@ -62,7 +62,7 @@ export class Graph<T = unknown> implements IGraph<T> {
 
   #toSnapshot(vertex: TVertex<T>): VertexSnapshot<T> {
     return {
-      index: vertex.index,
+      id: vertex.index,
       value: vertex.value,
     }
   }
