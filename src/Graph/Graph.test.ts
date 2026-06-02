@@ -1,3 +1,4 @@
+import { VertexAlreadyExistsError, VertexNotFoundError } from './errors'
 import { Graph } from './Graph'
 import type { VertexId } from './interface'
 
@@ -232,6 +233,29 @@ describe('Graph', () => {
 
     const id: VertexId = snapshot!.id
     expect(typeof id === 'string' || typeof id === 'number').toBe(true)
+  })
+
+  it('VertexAlreadyExistsError and VertexNotFoundError are catchable via instanceof', () => {
+    const alreadyExists = new VertexAlreadyExistsError('a')
+    expect(alreadyExists).toBeInstanceOf(Error)
+    expect(alreadyExists).toBeInstanceOf(VertexAlreadyExistsError)
+    expect(alreadyExists.name).toBe('VertexAlreadyExistsError')
+    expect(alreadyExists.message).toContain('a')
+
+    const notFound = new VertexNotFoundError(42)
+    expect(notFound).toBeInstanceOf(Error)
+    expect(notFound).toBeInstanceOf(VertexNotFoundError)
+    expect(notFound.name).toBe('VertexNotFoundError')
+    expect(notFound.message).toContain('42')
+
+    const caught = (() => {
+      try {
+        throw new VertexAlreadyExistsError('x')
+      } catch (e) {
+        return e instanceof VertexAlreadyExistsError
+      }
+    })()
+    expect(caught).toBe(true)
   })
 
   it('models task dependencies through the Graph interface', () => {
