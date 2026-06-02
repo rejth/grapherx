@@ -1,5 +1,6 @@
 import { LinkedList } from '../LinkedList'
 
+import type { VertexId } from './interface'
 import type { TVertex } from './Vertex'
 
 export class AdjacencyList<T> {
@@ -11,11 +12,9 @@ export class AdjacencyList<T> {
     source.edges.insertFirst(target)
   }
 
-  disconnect(source: TVertex<T>, targetIndex: number): boolean {
+  disconnect(source: TVertex<T>, targetId: VertexId): boolean {
     const adjacentVertices = this.adjacentTo(source)
-    const nextAdjacentVertices = adjacentVertices.filter(
-      (adjacent) => adjacent.index !== targetIndex,
-    )
+    const nextAdjacentVertices = adjacentVertices.filter((adjacent) => adjacent.id !== targetId)
 
     if (nextAdjacentVertices.length === adjacentVertices.length) {
       return false

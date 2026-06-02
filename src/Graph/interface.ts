@@ -2,21 +2,21 @@ export type VertexId = string | number
 
 export interface IGraph<T> {
   get size(): number
-  addVertex(nodeIndex: number, value: T): boolean
-  setVertex(nodeIndex: number, value: T): boolean
-  getVertex(nodeIndex: number): VertexSnapshot<T> | undefined
-  getAdjacent(nodeIndex: number): VertexSnapshot<T>[]
-  addEdge(sourceNodeIndex: number, targetNodeIndex: number): boolean
-  updateVertex(index: number, newValue: T): VertexSnapshot<T>[]
-  breadthFirstSearch(): number[]
-  depthFirstSearch(): number[]
-  depthFirstTraversal(startNodeIndex: number): IterableIterator<VertexSnapshot<T>>
+  get vertexCount(): number
+  addVertex(id: VertexId, value: T): void
+  updateVertex(id: VertexId, value: T): void
+  getVertex(id: VertexId): VertexSnapshot<T> | undefined
+  getAdjacent(id: VertexId): VertexSnapshot<T>[]
+  addEdge(sourceId: VertexId, targetId: VertexId): boolean
+  breadthFirstSearch(): VertexId[]
+  depthFirstSearch(): VertexId[]
+  depthFirstTraversal(startId: VertexId): IterableIterator<VertexSnapshot<T>>
   detectCycle(): boolean
-  findShortestPath(sourceNodeIndex: number, targetNodeIndex: number): number
+  findShortestPath(sourceId: VertexId, targetId: VertexId): number
   findMotherVertex(): VertexSnapshot<T> | undefined
-  removeVertex(index: number): VertexSnapshot<T> | undefined
-  removeEdge(sourceNodeIndex: number, targetNodeIndex: number): boolean
-  checkPath(sourceNodeIndex: number, targetNodeIndex: number): boolean
+  removeVertex(id: VertexId): void
+  removeEdge(sourceId: VertexId, targetId: VertexId): boolean
+  checkPath(sourceId: VertexId, targetId: VertexId): boolean
   mapGraphOver(): GraphSnapshot<T>
   printGraph(): void
 }
@@ -26,4 +26,4 @@ export type VertexSnapshot<T> = Readonly<{
   value: T | null
 }>
 
-export type GraphSnapshot<T> = Map<number, VertexSnapshot<T>[]>
+export type GraphSnapshot<T> = Map<VertexId, VertexSnapshot<T>[]>

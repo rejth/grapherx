@@ -70,7 +70,7 @@ describe('Graph', () => {
       },
     ]
 
-    const graph = new Graph<string>(tasks.length)
+    const graph = new Graph<string>()
 
     tasks.forEach((task, index) => {
       graph.addVertex(index, task.specification.id)
@@ -89,10 +89,10 @@ describe('Graph', () => {
   }
 
   it('exposes vertex snapshots without leaking mutable storage', () => {
-    const graph = new Graph<string>(2)
+    const graph = new Graph<string>()
 
-    expect(graph.setVertex(0, 'source')).toBe(true)
-    expect(graph.addVertex(1, 'target')).toBe(true)
+    graph.addVertex(0, 'source')
+    graph.addVertex(1, 'target')
     expect(graph.addEdge(0, 1)).toBe(true)
 
     const vertex = graph.getVertex(0)
@@ -108,11 +108,11 @@ describe('Graph', () => {
   })
 
   it('keeps graph mutation behind the Graph interface', () => {
-    const graph = new Graph<string>(3)
+    const graph = new Graph<string>()
 
-    graph.setVertex(0, 'a')
-    graph.setVertex(1, 'b')
-    graph.setVertex(2, 'c')
+    graph.addVertex(0, 'a')
+    graph.addVertex(1, 'b')
+    graph.addVertex(2, 'c')
     graph.addEdge(0, 1)
     graph.addEdge(0, 2)
 
@@ -120,33 +120,35 @@ describe('Graph', () => {
     expect(graph.removeEdge(0, 1)).toBe(false)
     expect(graph.getAdjacent(0)).toEqual([{ id: 2, value: 'c' }])
 
-    expect(graph.removeVertex(1)).toEqual({ id: 1, value: 'b' })
+    graph.removeVertex(1)
+    expect(graph.getVertex(1)).toBeUndefined()
     expect(graph.size).toBe(2)
     expect(graph.getAdjacent(0)).toEqual([{ id: 2, value: 'c' }])
   })
 
   it('removes incoming adjacency when a vertex is removed', () => {
-    const graph = new Graph<string>(4)
+    const graph = new Graph<string>()
 
-    graph.setVertex(0, 'a')
-    graph.setVertex(1, 'b')
-    graph.setVertex(2, 'c')
-    graph.setVertex(3, 'd')
+    graph.addVertex(0, 'a')
+    graph.addVertex(1, 'b')
+    graph.addVertex(2, 'c')
+    graph.addVertex(3, 'd')
     graph.addEdge(0, 2)
     graph.addEdge(1, 2)
     graph.addEdge(2, 3)
 
-    expect(graph.removeVertex(2)).toEqual({ id: 2, value: 'c' })
+    graph.removeVertex(2)
+    expect(graph.getVertex(2)).toBeUndefined()
     expect(graph.getAdjacent(0)).toEqual([])
     expect(graph.getAdjacent(1)).toEqual([])
-    expect(graph.getAdjacent(2)).toEqual([])
+    expect(graph.getAdjacent(3)).toEqual([])
   })
 
-  it('returns graph snapshots keyed by vertex index', () => {
-    const graph = new Graph<string>(2)
+  it('returns graph snapshots keyed by vertex id', () => {
+    const graph = new Graph<string>()
 
-    graph.setVertex(0, 'source')
-    graph.setVertex(1, 'target')
+    graph.addVertex(0, 'source')
+    graph.addVertex(1, 'target')
     graph.addEdge(0, 1)
 
     expect(graph.mapGraphOver()).toEqual(
@@ -158,11 +160,11 @@ describe('Graph', () => {
   })
 
   it('runs graph operations through the public seam', () => {
-    const graph = new Graph<string>(3)
+    const graph = new Graph<string>()
 
-    graph.setVertex(0, 'a')
-    graph.setVertex(1, 'b')
-    graph.setVertex(2, 'c')
+    graph.addVertex(0, 'a')
+    graph.addVertex(1, 'b')
+    graph.addVertex(2, 'c')
     graph.addEdge(0, 1)
     graph.addEdge(1, 2)
 
@@ -177,12 +179,12 @@ describe('Graph', () => {
   })
 
   it('concentrates traversal behavior across graph operations', () => {
-    const graph = new Graph<string>(4)
+    const graph = new Graph<string>()
 
-    graph.setVertex(0, 'a')
-    graph.setVertex(1, 'b')
-    graph.setVertex(2, 'c')
-    graph.setVertex(3, 'd')
+    graph.addVertex(0, 'a')
+    graph.addVertex(1, 'b')
+    graph.addVertex(2, 'c')
+    graph.addVertex(3, 'd')
     graph.addEdge(0, 2)
     graph.addEdge(0, 1)
     graph.addEdge(1, 3)
@@ -201,8 +203,9 @@ describe('Graph', () => {
   })
 
   it('returns empty traversal results for invalid or unreachable paths', () => {
-    const graph = new Graph(2)
-
+    const graph = new Graph()
+    graph.addVertex(0, null)
+    graph.addVertex(1, null)
     graph.addEdge(0, 1)
 
     expect([...graph.depthFirstTraversal(4)]).toEqual([])
@@ -212,8 +215,10 @@ describe('Graph', () => {
   })
 
   it('detects directed cycles', () => {
-    const graph = new Graph(3)
-
+    const graph = new Graph()
+    graph.addVertex(0, null)
+    graph.addVertex(1, null)
+    graph.addVertex(2, null)
     graph.addEdge(0, 1)
     graph.addEdge(1, 2)
     graph.addEdge(2, 0)
@@ -222,30 +227,26 @@ describe('Graph', () => {
   })
 
   it('vertex insertion order is stable across add and remove cycles', () => {
-    const graph = new Graph<string>(4)
-    graph.setVertex(0, 'a')
-    graph.setVertex(1, 'b')
-    graph.setVertex(2, 'c')
-    graph.setVertex(3, 'd')
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+    graph.addVertex(1, 'b')
+    graph.addVertex(2, 'c')
+    graph.addVertex(3, 'd')
 
     graph.removeVertex(1)
 
     const keys = [...graph.mapGraphOver().keys()]
     expect(keys).toEqual([0, 2, 3])
 
-    const snapshot0 = graph.getVertex(0)
-    const snapshot2 = graph.getVertex(2)
-    const snapshot3 = graph.getVertex(3)
-    expect(snapshot0?.id).toBe(0)
-    expect(snapshot2?.id).toBe(2)
-    expect(snapshot3?.id).toBe(3)
-
+    expect(graph.getVertex(0)?.id).toBe(0)
+    expect(graph.getVertex(2)?.id).toBe(2)
+    expect(graph.getVertex(3)?.id).toBe(3)
     expect(graph.getVertex(1)).toBeUndefined()
   })
 
   it('VertexSnapshot exposes id as VertexId, not index', () => {
-    const graph = new Graph<string>(1)
-    graph.setVertex(0, 'hello')
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'hello')
 
     const snapshot = graph.getVertex(0)
     expect(snapshot).toBeDefined()
@@ -278,6 +279,76 @@ describe('Graph', () => {
       }
     })()
     expect(caught).toBe(true)
+  })
+
+  it('addVertex stores vertex by caller-provided ID', () => {
+    const graph = new Graph<string>()
+    graph.addVertex('myId', 'hello')
+    graph.addVertex(42, 'world')
+
+    expect(graph.getVertex('myId')).toEqual({ id: 'myId', value: 'hello' })
+    expect(graph.getVertex(42)).toEqual({ id: 42, value: 'world' })
+  })
+
+  it('addVertex throws VertexAlreadyExistsError on duplicate ID', () => {
+    const graph = new Graph<string>()
+    graph.addVertex('dup', 'first')
+
+    expect(() => graph.addVertex('dup', 'second')).toThrow(VertexAlreadyExistsError)
+    expect(graph.getVertex('dup')).toEqual({ id: 'dup', value: 'first' })
+  })
+
+  it('updateVertex updates value of existing vertex', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(1, 'original')
+
+    graph.updateVertex(1, 'updated')
+
+    expect(graph.getVertex(1)).toEqual({ id: 1, value: 'updated' })
+  })
+
+  it('updateVertex throws VertexNotFoundError on missing ID', () => {
+    const graph = new Graph<string>()
+
+    expect(() => graph.updateVertex('missing', 'value')).toThrow(VertexNotFoundError)
+  })
+
+  it('getVertex returns undefined for unknown ID', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(1, 'exists')
+
+    expect(graph.getVertex(99)).toBeUndefined()
+    expect(graph.getVertex('unknown')).toBeUndefined()
+  })
+
+  it('removeVertex removes the vertex', () => {
+    const graph = new Graph<string>()
+    graph.addVertex('a', 'alpha')
+
+    graph.removeVertex('a')
+
+    expect(graph.getVertex('a')).toBeUndefined()
+    expect(graph.vertexCount).toBe(0)
+  })
+
+  it('removeVertex throws VertexNotFoundError on missing ID', () => {
+    const graph = new Graph<string>()
+
+    expect(() => graph.removeVertex('ghost')).toThrow(VertexNotFoundError)
+  })
+
+  it('vertexCount returns current number of vertices', () => {
+    const graph = new Graph<string>()
+    expect(graph.vertexCount).toBe(0)
+
+    graph.addVertex(1, 'a')
+    expect(graph.vertexCount).toBe(1)
+
+    graph.addVertex(2, 'b')
+    expect(graph.vertexCount).toBe(2)
+
+    graph.removeVertex(1)
+    expect(graph.vertexCount).toBe(1)
   })
 
   it('models task dependencies through the Graph interface', () => {

@@ -1,4 +1,5 @@
 import { AdjacencyList } from './AdjacencyList'
+import { VertexAlreadyExistsError, VertexNotFoundError } from './errors'
 import type { GraphSnapshot, IGraph, VertexId, VertexSnapshot } from './interface'
 import { type TVertex, Vertex } from './Vertex'
 
@@ -47,22 +48,14 @@ export class Graph<T = unknown> implements IGraph<T> {
   #vertices: Map<VertexId, TVertex<T>>
   #adjacencyList: AdjacencyList<T>
 
-  constructor(verticesCount: number) {
+  constructor() {
     this.#vertices = new Map()
     this.#adjacencyList = new AdjacencyList<T>()
-
-    for (let i = 0; i < verticesCount; i++) {
-      this.#vertices.set(i, new Vertex<T>(i))
-    }
-  }
-
-  #hasVertex(id: VertexId): boolean {
-    return this.#vertices.has(id)
   }
 
   #toSnapshot(vertex: TVertex<T>): VertexSnapshot<T> {
     return {
-      id: vertex.index,
+      id: vertex.id,
       value: vertex.value,
     }
   }
@@ -70,17 +63,16 @@ export class Graph<T = unknown> implements IGraph<T> {
   #getAdjacentVertices(id: VertexId): TVertex<T>[] {
     const vertex = this.#vertices.get(id)
     if (!vertex) return []
-
     return this.#adjacencyList.adjacentTo(vertex)
   }
 
   #breadthFirstSteps(startId: VertexId): TraversalStep<T>[] {
-    if (!this.#hasVertex(startId)) return []
+    const startVertex = this.#vertices.get(startId)
+    if (!startVertex) return []
 
     const queue = new TraversalQueue<TraversalStep<T>>()
     const visited = new Set<string>()
     const traversal: TraversalStep<T>[] = []
-    const startVertex = this.#vertices.get(startId)!
 
     visited.add(startVertex.uuid)
     queue.push({ vertex: startVertex, distance: 0 })
@@ -93,7 +85,6 @@ export class Graph<T = unknown> implements IGraph<T> {
 
       for (const adjacent of this.#adjacencyList.adjacentTo(step.vertex)) {
         if (visited.has(adjacent.uuid)) continue
-
         visited.add(adjacent.uuid)
         queue.push({ vertex: adjacent, distance: step.distance + 1 })
       }
@@ -131,15 +122,21 @@ export class Graph<T = unknown> implements IGraph<T> {
     return this.#vertices.size
   }
 
-  addVertex(id: VertexId, value: T): boolean {
-    return this.setVertex(id, value)
+  get vertexCount(): number {
+    return this.#vertices.size
   }
 
-  setVertex(id: VertexId, value: T): boolean {
-    const vertex = this.#vertices.get(id)
-    if (!vertex) return false
+  addVertex(id: VertexId, value: T): void {
+    if (this.#vertices.has(id)) throw new VertexAlreadyExistsError(id)
+    const vertex = new Vertex<T>(id)
     vertex.value = value
-    return true
+    this.#vertices.set(id, vertex)
+  }
+
+  updateVertex(id: VertexId, value: T): void {
+    const vertex = this.#vertices.get(id)
+    if (!vertex) throw new VertexNotFoundError(id)
+    vertex.value = value
   }
 
   getVertex(id: VertexId): VertexSnapshot<T> | undefined {
@@ -149,7 +146,6 @@ export class Graph<T = unknown> implements IGraph<T> {
   }
 
   getAdjacent(id: VertexId): VertexSnapshot<T>[] {
-    if (!this.#hasVertex(id)) return []
     return this.#getAdjacentVertices(id).map((vertex) => this.#toSnapshot(vertex))
   }
 
@@ -161,17 +157,14 @@ export class Graph<T = unknown> implements IGraph<T> {
     return true
   }
 
-  updateVertex(id: VertexId, newValue: T): VertexSnapshot<T>[] {
-    this.setVertex(id, newValue)
-    return this.getAdjacent(id)
+  breadthFirstSearch(): VertexId[] {
+    const firstKey = this.#vertices.keys().next().value
+    if (firstKey === undefined) return []
+    return this.#breadthFirstSteps(firstKey).map((step) => step.vertex.id)
   }
 
-  breadthFirstSearch(): number[] {
-    return this.#breadthFirstSteps(0).map((step) => step.vertex.index)
-  }
-
-  depthFirstSearch(): number[] {
-    return this.#depthFirstVertices(this.#vertices.values()).map((vertex) => vertex.index)
+  depthFirstSearch(): VertexId[] {
+    return this.#depthFirstVertices(this.#vertices.values()).map((vertex) => vertex.id)
   }
 
   detectCycle(): boolean {
@@ -186,7 +179,7 @@ export class Graph<T = unknown> implements IGraph<T> {
         recNodes.add(id)
 
         for (const adjacent of this.#adjacencyList.adjacentTo(node)) {
-          const adjId = adjacent.index
+          const adjId = adjacent.id
           if (visited.has(adjId) && recNodes.has(adjId)) return true
           if (!visited.has(adjId) && detect(adjId)) return true
         }
@@ -215,17 +208,14 @@ export class Graph<T = unknown> implements IGraph<T> {
   /*
     Breadth first search comes to rescue.
     The idea is to use a simple queue to traverse a graph and a depth level counter to store a number of edges we've passed.
-    So we traverse the graph in a loop until th queue is empty. On each iteration a node gets pulled off from the queue. Then we iterate over all adjacent nodes of that node.
+    So we traverse the graph in a loop until the queue is empty. On each iteration a node gets pulled off from the queue. Then we iterate over all adjacent nodes of that node.
     Once we have passed all adjacent nodes of the node, we increase the depth level counter.
     On each iteration we check if an adjacent node is equal to the target node.
     If it is, we return the number the depth level, and it is going to be a minimal number of edges from the source node to the target.
     If it is not, we add a new adjacent node gets put on to the queue.
    */
   findShortestPath(sourceId: VertexId, targetId: VertexId): number {
-    const targetStep = this.#breadthFirstSteps(sourceId).find(
-      (step) => step.vertex.index === targetId,
-    )
-
+    const targetStep = this.#breadthFirstSteps(sourceId).find((step) => step.vertex.id === targetId)
     return targetStep?.distance ?? -1
   }
 
@@ -236,7 +226,6 @@ export class Graph<T = unknown> implements IGraph<T> {
       if (this.#depthFirstVertices([vertex]).length === this.#vertices.size)
         return this.#toSnapshot(vertex)
     }
-
     return undefined
   }
 
@@ -244,39 +233,33 @@ export class Graph<T = unknown> implements IGraph<T> {
   checkPath(sourceId: VertexId, targetId: VertexId): boolean {
     const sourceVertex = this.#vertices.get(sourceId)
     if (!sourceVertex) return false
-
-    return this.#depthFirstVertices([sourceVertex]).some((vertex) => vertex.index === targetId)
+    return this.#depthFirstVertices([sourceVertex]).some((vertex) => vertex.id === targetId)
   }
 
-  removeVertex(id: VertexId): VertexSnapshot<T> | undefined {
+  removeVertex(id: VertexId): void {
     const deletedVertex = this.#vertices.get(id)
-    if (!deletedVertex) return undefined
-
-    const deletedSnapshot = this.#toSnapshot(deletedVertex)
+    if (!deletedVertex) throw new VertexNotFoundError(id)
     this.#vertices.delete(id)
     this.#adjacencyList.removeReferences(Array.from(this.#vertices.values()), deletedVertex)
-
-    return deletedSnapshot
   }
 
   removeEdge(sourceId: VertexId, targetId: VertexId): boolean {
     const source = this.#vertices.get(sourceId)
     const target = this.#vertices.get(targetId)
     if (!source || !target) return false
-
-    return this.#adjacencyList.disconnect(source, target.index)
+    return this.#adjacencyList.disconnect(source, target.id)
   }
 
   mapGraphOver(): GraphSnapshot<T> {
     return Array.from(this.#vertices.keys()).reduce((acc: GraphSnapshot<T>, id) => {
-      return acc.set(id as number, this.getAdjacent(id))
+      return acc.set(id, this.getAdjacent(id))
     }, new Map())
   }
 
   // Topological Sort is used to find a linear ordering of elements that have dependencies on each other.
   // A topological ordering is possible only when the graph has no directed cycles, i.e. if the graph is a Directed Acyclic Graph (DAG).
   // If the graph has a cycle, some vertices will have cyclic dependencies which makes it impossible to find a linear ordering among vertices.
-  sortTopologically(): number[] {
+  sortTopologically(): VertexId[] {
     if (this.detectCycle()) return []
     return this.breadthFirstSearch()
   }
