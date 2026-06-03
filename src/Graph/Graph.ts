@@ -54,7 +54,8 @@ export class Graph<T = unknown> implements IGraph<T> {
 
   #getAdjacentVertices(id: VertexId): TVertex<T>[] {
     const innerMap = this.#adjacencyMap.get(id)
-    if (!innerMap) return []
+    if (!innerMap)
+      throw new Error(`Invariant violation: no adjacency entry for vertex "${String(id)}"`)
     return Array.from(innerMap.keys()).flatMap((adjId) => {
       const v = this.#vertices.get(adjId)
       return v ? [v] : []
@@ -145,9 +146,9 @@ export class Graph<T = unknown> implements IGraph<T> {
   }
 
   addEdge(sourceId: VertexId, targetId: VertexId): void {
+    if (sourceId === targetId) throw new SelfLoopError(sourceId)
     if (!this.#vertices.has(sourceId)) throw new VertexNotFoundError(sourceId)
     if (!this.#vertices.has(targetId)) throw new VertexNotFoundError(targetId)
-    if (sourceId === targetId) throw new SelfLoopError(sourceId)
     const innerMap = this.#adjacencyMap.get(sourceId)!
     if (innerMap.has(targetId)) throw new EdgeAlreadyExistsError(sourceId, targetId)
     innerMap.set(targetId, {})
