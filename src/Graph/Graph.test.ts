@@ -190,13 +190,14 @@ describe('Graph', () => {
     graph.addEdge(1, 3)
     graph.addEdge(2, 3)
 
-    expect(graph.breadthFirstSearch()).toEqual([0, 1, 2, 3])
-    expect(graph.depthFirstSearch()).toEqual([0, 1, 3, 2])
+    // Adjacency stored in insertion order: adjacent(0) = [2, 1]
+    expect(graph.breadthFirstSearch()).toEqual([0, 2, 1, 3])
+    expect(graph.depthFirstSearch()).toEqual([0, 2, 3, 1])
     expect([...graph.depthFirstTraversal(0)]).toEqual([
       { id: 0, value: 'a' },
-      { id: 1, value: 'b' },
-      { id: 3, value: 'd' },
       { id: 2, value: 'c' },
+      { id: 3, value: 'd' },
+      { id: 1, value: 'b' },
     ])
     expect(graph.findShortestPath(0, 3)).toBe(2)
     expect(graph.checkPath(2, 1)).toBe(false)
@@ -351,6 +352,18 @@ describe('Graph', () => {
     expect(graph.vertexCount).toBe(1)
   })
 
+  it('adjacency map initialised on vertex add returns empty adjacent list', () => {
+    const graph = new Graph<string>()
+    graph.addVertex('a', 'alpha')
+
+    expect(graph.getAdjacent('a')).toEqual([])
+
+    graph.addVertex('b', 'beta')
+    graph.addEdge('a', 'b')
+    expect(graph.getAdjacent('a')).toEqual([{ id: 'b', value: 'beta' }])
+    expect(graph.getAdjacent('b')).toEqual([])
+  })
+
   it('addEdge returns false when source or target vertex does not exist', () => {
     const graph = new Graph<string>()
     graph.addVertex(0, 'a')
@@ -390,9 +403,10 @@ describe('Graph', () => {
   it('models task dependencies through the Graph interface', () => {
     const graph = createTaskGraph()
 
+    // Insertion order: addEdge(0,1) before addEdge(0,2)
     expect(graph.getAdjacent(0)).toEqual([
-      { id: 2, value: 'RELOAD_COMPLEX_MEASURES' },
       { id: 1, value: 'RELOAD_MATCHED_TREATMENTS' },
+      { id: 2, value: 'RELOAD_COMPLEX_MEASURES' },
     ])
     expect(graph.findShortestPath(2, 6)).toBe(3)
     expect(graph.findMotherVertex()).toEqual({

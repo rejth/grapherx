@@ -1,6 +1,5 @@
-import { AdjacencyList } from './AdjacencyList'
 import { VertexAlreadyExistsError, VertexNotFoundError } from './errors'
-import type { GraphSnapshot, IGraph, VertexId, VertexSnapshot } from './interface'
+import type { EdgeRecord, GraphSnapshot, IGraph, VertexId, VertexSnapshot } from './interface'
 import { type TVertex, Vertex } from './Vertex'
 
 type TraversalStep<T> = {
@@ -46,11 +45,11 @@ class TraversalStack<T> {
 
 export class Graph<T = unknown> implements IGraph<T> {
   #vertices: Map<VertexId, TVertex<T>>
-  #adjacencyList: AdjacencyList<T>
+  #adjacencyMap: Map<VertexId, Map<VertexId, EdgeRecord>>
 
   constructor() {
     this.#vertices = new Map()
-    this.#adjacencyList = new AdjacencyList<T>()
+    this.#adjacencyMap = new Map()
   }
 
   #toSnapshot(vertex: TVertex<T>): VertexSnapshot<T> {
@@ -61,9 +60,11 @@ export class Graph<T = unknown> implements IGraph<T> {
   }
 
   #getAdjacentVertices(id: VertexId): TVertex<T>[] {
-    const vertex = this.#vertices.get(id)
-    if (!vertex) return []
-    return this.#adjacencyList.adjacentTo(vertex)
+    const innerMap = this.#adjacencyMap.get(id)
+    if (!innerMap) return []
+    return Array.from(innerMap.keys())
+      .map((adjId) => this.#vertices.get(adjId))
+      .filter((v): v is TVertex<T> => v !== undefined)
   }
 
   #breadthFirstSteps(startId: VertexId): TraversalStep<T>[] {
@@ -83,7 +84,7 @@ export class Graph<T = unknown> implements IGraph<T> {
 
       traversal.push(step)
 
-      for (const adjacent of this.#adjacencyList.adjacentTo(step.vertex)) {
+      for (const adjacent of this.#getAdjacentVertices(step.vertex.id)) {
         if (visited.has(adjacent.uuid)) continue
         visited.add(adjacent.uuid)
         queue.push({ vertex: adjacent, distance: step.distance + 1 })
@@ -110,7 +111,7 @@ export class Graph<T = unknown> implements IGraph<T> {
         visited.add(vertex.uuid)
         traversal.push(vertex)
         stack.push(iterator)
-        stack.push(this.#adjacencyList.adjacentTo(vertex).values())
+        stack.push(this.#getAdjacentVertices(vertex.id).values())
         break
       }
     }
@@ -125,6 +126,7 @@ export class Graph<T = unknown> implements IGraph<T> {
   addVertex(id: VertexId, value: T): void {
     if (this.#vertices.has(id)) throw new VertexAlreadyExistsError(id)
     this.#vertices.set(id, new Vertex<T>(id, value))
+    this.#adjacencyMap.set(id, new Map())
   }
 
   updateVertex(id: VertexId, value: T): void {
@@ -144,10 +146,9 @@ export class Graph<T = unknown> implements IGraph<T> {
   }
 
   addEdge(sourceId: VertexId, targetId: VertexId): boolean {
-    const source = this.#vertices.get(sourceId)
-    const target = this.#vertices.get(targetId)
-    if (!source || !target) return false
-    this.#adjacencyList.connect(source, target)
+    const innerMap = this.#adjacencyMap.get(sourceId)
+    if (!innerMap || !this.#vertices.has(targetId)) return false
+    innerMap.set(targetId, {})
     return true
   }
 
@@ -182,7 +183,7 @@ export class Graph<T = unknown> implements IGraph<T> {
         visited.add(id)
         recNodes.add(id)
 
-        for (const adjacent of this.#adjacencyList.adjacentTo(node)) {
+        for (const adjacent of this.#getAdjacentVertices(id)) {
           const adjId = adjacent.id
           if (visited.has(adjId) && recNodes.has(adjId)) return true
           if (!visited.has(adjId) && detect(adjId)) return true
@@ -241,16 +242,18 @@ export class Graph<T = unknown> implements IGraph<T> {
   }
 
   removeVertex(id: VertexId): void {
-    const deletedVertex = this.#vertices.get(id)
-    if (!deletedVertex) throw new VertexNotFoundError(id)
+    if (!this.#vertices.has(id)) throw new VertexNotFoundError(id)
     this.#vertices.delete(id)
-    this.#adjacencyList.removeReferences(Array.from(this.#vertices.values()), deletedVertex)
+    this.#adjacencyMap.delete(id)
+    for (const innerMap of this.#adjacencyMap.values()) {
+      innerMap.delete(id)
+    }
   }
 
   removeEdge(sourceId: VertexId, targetId: VertexId): boolean {
-    const source = this.#vertices.get(sourceId)
-    if (!source) return false
-    return this.#adjacencyList.disconnect(source, targetId)
+    const innerMap = this.#adjacencyMap.get(sourceId)
+    if (!innerMap) return false
+    return innerMap.delete(targetId)
   }
 
   mapGraphOver(): GraphSnapshot<T> {
@@ -273,9 +276,10 @@ export class Graph<T = unknown> implements IGraph<T> {
     this.#vertices.forEach((node, id) => {
       process.stdout.write(`|id: ${String(id)}, value: ${String(node.value)}| => `)
 
-      this.#adjacencyList.adjacentTo(node).forEach((adjacent) => {
-        process.stdout.write(`[${String(adjacent.value)}] -> `)
-      })
+      for (const adjId of this.#adjacencyMap.get(id)?.keys() ?? []) {
+        const adj = this.#vertices.get(adjId)
+        if (adj) process.stdout.write(`[${String(adj.value)}] -> `)
+      }
 
       console.log('null')
     })
