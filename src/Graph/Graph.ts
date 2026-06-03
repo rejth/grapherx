@@ -155,7 +155,7 @@ export class Graph<T = unknown> implements IGraph<T> {
     this.#edgeCount++
   }
 
-  breadthFirstSearch(): VertexId[] {
+  #breadthFirstAll(): VertexId[] {
     const visited = new Set<VertexId>()
     const result: VertexId[] = []
 
@@ -171,8 +171,14 @@ export class Graph<T = unknown> implements IGraph<T> {
     return result
   }
 
-  depthFirstSearch(): VertexId[] {
-    return this.#depthFirstVertices(this.#vertices.values()).map((vertex) => vertex.id)
+  breadthFirstSearch(startId: VertexId): VertexId[] {
+    return this.#breadthFirstSteps(startId).map((step) => step.vertex.id)
+  }
+
+  depthFirstSearch(startId: VertexId): VertexId[] {
+    const startVertex = this.#vertices.get(startId)
+    if (!startVertex) return []
+    return this.#depthFirstVertices([startVertex]).map((vertex) => vertex.id)
   }
 
   detectCycle(): boolean {
@@ -277,7 +283,7 @@ export class Graph<T = unknown> implements IGraph<T> {
   // If the graph has a cycle, some vertices will have cyclic dependencies which makes it impossible to find a linear ordering among vertices.
   sortTopologically(): VertexId[] {
     if (this.detectCycle()) return []
-    return this.breadthFirstSearch()
+    return this.#breadthFirstAll()
   }
 
   printGraph(): void {
