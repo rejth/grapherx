@@ -52,7 +52,10 @@ export class Graph<T = unknown> implements IGraph<T> {
   #getAdjacentVertices(id: VertexId): TVertex<T>[] {
     const innerSet = this.#adjacencyMap.get(id)
     if (!innerSet) return []
-    return Array.from(innerSet).map((adjId) => this.#vertices.get(adjId)!)
+    return Array.from(innerSet).flatMap((adjId) => {
+      const v = this.#vertices.get(adjId)
+      return v ? [v] : []
+    })
   }
 
   #breadthFirstSteps(startId: VertexId): TraversalStep<T>[] {
@@ -139,6 +142,8 @@ export class Graph<T = unknown> implements IGraph<T> {
   }
 
   addEdge(sourceId: VertexId, targetId: VertexId): void {
+    if (sourceId === targetId)
+      throw new Error(`Self-loops are not allowed: vertex ${String(sourceId)}`)
     if (!this.#vertices.has(sourceId)) throw new VertexNotFoundError(sourceId)
     if (!this.#vertices.has(targetId)) throw new VertexNotFoundError(targetId)
     const innerSet = this.#adjacencyMap.get(sourceId)!

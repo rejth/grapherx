@@ -392,6 +392,14 @@ describe('Graph', () => {
     expect(() => graph.addEdge(0, 99)).toThrow(VertexNotFoundError)
   })
 
+  it('addEdge throws on self-loop', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+
+    expect(() => graph.addEdge(0, 0)).toThrow('Self-loops are not allowed')
+    expect(graph.edgeCount).toBe(0)
+  })
+
   it('addEdge throws EdgeAlreadyExistsError on duplicate edge', () => {
     const graph = new Graph<string>()
     graph.addVertex(0, 'a')
