@@ -5,7 +5,10 @@ import {
   VertexAlreadyExistsError,
   VertexNotFoundError,
 } from './errors'
-import type { EdgeRecord, GraphSnapshot, IGraph, VertexId, VertexSnapshot } from './interface'
+import type { GraphSnapshot, IGraph, VertexId, VertexSnapshot } from './interface'
+
+type EdgeRecord = Record<string, never>
+
 import { type TVertex, Vertex } from './Vertex'
 
 type TraversalStep<T> = {

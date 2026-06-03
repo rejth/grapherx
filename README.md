@@ -42,7 +42,7 @@ type VertexSnapshot<T> = Readonly<{
 type GraphSnapshot = Map<VertexId, VertexId[]>;
 ```
 
-`addVertex` throws `VertexAlreadyExistsError` on a duplicate ID. `updateVertex` and `removeVertex` throw `VertexNotFoundError` when the ID does not exist. `addEdge` throws `VertexNotFoundError` when either endpoint does not exist, and throws `EdgeAlreadyExistsError` on a duplicate edge. `removeEdge` throws `VertexNotFoundError` for a missing endpoint and `EdgeNotFoundError` when the edge does not exist. All four error classes are exported and catchable via `instanceof`.
+`addVertex` throws `VertexAlreadyExistsError` on a duplicate ID. `updateVertex` and `removeVertex` throw `VertexNotFoundError` when the ID does not exist. `addEdge` throws `VertexNotFoundError` when either endpoint does not exist, throws `EdgeAlreadyExistsError` on a duplicate edge, and throws `SelfLoopError` when source and target are the same vertex. `removeEdge` throws `VertexNotFoundError` for a missing endpoint and `EdgeNotFoundError` when the edge does not exist. All five error classes are exported and catchable via `instanceof`.
 
 ## Features and Complexity
 
