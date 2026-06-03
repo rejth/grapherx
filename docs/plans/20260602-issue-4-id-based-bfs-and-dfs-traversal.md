@@ -40,12 +40,12 @@ Replace the current start-at-zero, no-argument `breadthFirstSearch()` and `depth
 
 ### Task 2: Remove old no-argument traversal signatures
 
-- [ ] Remove old `breadthFirstSearch(): number[]` signature from `Graph`
-- [ ] Remove old `depthFirstSearch(): number[]` signature from `Graph`
-- [ ] Update `IGraph<T>` interface: replace old signatures with `breadthFirstSearch(startId: VertexId): VertexId[]` and `depthFirstSearch(startId: VertexId): VertexId[]`
-- [ ] Confirm no other callers reference the old no-argument form
-- [ ] Write tests confirming old no-arg call shape no longer compiles or is present
-- [ ] Run project tests — must pass before next task
+- [x] Remove old `breadthFirstSearch(): number[]` signature from `Graph`
+- [x] Remove old `depthFirstSearch(): number[]` signature from `Graph`
+- [x] Update `IGraph<T>` interface: replace old signatures with `breadthFirstSearch(startId: VertexId): VertexId[]` and `depthFirstSearch(startId: VertexId): VertexId[]`
+- [x] Confirm no other callers reference the old no-argument form
+- [x] Write tests confirming old no-arg call shape no longer compiles or is present
+- [x] Run project tests — must pass before next task
 
 ### Task 3: Verify acceptance criteria
 
