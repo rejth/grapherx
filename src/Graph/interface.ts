@@ -2,11 +2,13 @@ export type VertexId = string | number
 
 export interface IGraph<T> {
   get vertexCount(): number
+  get edgeCount(): number
   addVertex(id: VertexId, value: T): void
   updateVertex(id: VertexId, value: T): void
   getVertex(id: VertexId): VertexSnapshot<T> | undefined
-  getAdjacent(id: VertexId): VertexSnapshot<T>[]
-  addEdge(sourceId: VertexId, targetId: VertexId): boolean
+  getAdjacent(id: VertexId): VertexId[]
+  addEdge(sourceId: VertexId, targetId: VertexId): void
+  removeEdge(sourceId: VertexId, targetId: VertexId): void
   breadthFirstSearch(): VertexId[]
   depthFirstSearch(): VertexId[]
   depthFirstTraversal(startId: VertexId): IterableIterator<VertexSnapshot<T>>
@@ -14,9 +16,8 @@ export interface IGraph<T> {
   findShortestPath(sourceId: VertexId, targetId: VertexId): number
   findMotherVertex(): VertexSnapshot<T> | undefined
   removeVertex(id: VertexId): void
-  removeEdge(sourceId: VertexId, targetId: VertexId): boolean
   checkPath(sourceId: VertexId, targetId: VertexId): boolean
-  mapGraphOver(): GraphSnapshot<T>
+  mapGraphOver(): GraphSnapshot
   sortTopologically(): VertexId[]
   printGraph(): void
 }
@@ -26,6 +27,6 @@ export type VertexSnapshot<T> = Readonly<{
   value: T
 }>
 
-export type GraphSnapshot<T> = Map<VertexId, VertexSnapshot<T>[]>
+export type GraphSnapshot = Map<VertexId, VertexId[]>
 
 export type EdgeRecord = Record<string, never>

@@ -1,4 +1,9 @@
-import { VertexAlreadyExistsError, VertexNotFoundError } from './errors'
+import {
+  EdgeAlreadyExistsError,
+  EdgeNotFoundError,
+  VertexAlreadyExistsError,
+  VertexNotFoundError,
+} from './errors'
 import type { EdgeRecord, GraphSnapshot, IGraph, VertexId, VertexSnapshot } from './interface'
 import { type TVertex, Vertex } from './Vertex'
 
@@ -46,6 +51,7 @@ class TraversalStack<T> {
 export class Graph<T = unknown> implements IGraph<T> {
   #vertices: Map<VertexId, TVertex<T>>
   #adjacencyMap: Map<VertexId, Map<VertexId, EdgeRecord>>
+  #edgeCount = 0
 
   constructor() {
     this.#vertices = new Map()
@@ -123,6 +129,10 @@ export class Graph<T = unknown> implements IGraph<T> {
     return this.#vertices.size
   }
 
+  get edgeCount(): number {
+    return this.#edgeCount
+  }
+
   addVertex(id: VertexId, value: T): void {
     if (this.#vertices.has(id)) throw new VertexAlreadyExistsError(id)
     this.#vertices.set(id, new Vertex<T>(id, value))
@@ -141,15 +151,19 @@ export class Graph<T = unknown> implements IGraph<T> {
     return this.#toSnapshot(vertex)
   }
 
-  getAdjacent(id: VertexId): VertexSnapshot<T>[] {
-    return this.#getAdjacentVertices(id).map((vertex) => this.#toSnapshot(vertex))
+  getAdjacent(id: VertexId): VertexId[] {
+    const innerMap = this.#adjacencyMap.get(id)
+    if (!innerMap) return []
+    return Array.from(innerMap.keys())
   }
 
-  addEdge(sourceId: VertexId, targetId: VertexId): boolean {
-    const innerMap = this.#adjacencyMap.get(sourceId)
-    if (!innerMap || !this.#vertices.has(targetId)) return false
+  addEdge(sourceId: VertexId, targetId: VertexId): void {
+    if (!this.#vertices.has(sourceId)) throw new VertexNotFoundError(sourceId)
+    if (!this.#vertices.has(targetId)) throw new VertexNotFoundError(targetId)
+    const innerMap = this.#adjacencyMap.get(sourceId)!
+    if (innerMap.has(targetId)) throw new EdgeAlreadyExistsError(sourceId, targetId)
     innerMap.set(targetId, {})
-    return true
+    this.#edgeCount++
   }
 
   breadthFirstSearch(): VertexId[] {
@@ -243,21 +257,24 @@ export class Graph<T = unknown> implements IGraph<T> {
 
   removeVertex(id: VertexId): void {
     if (!this.#vertices.has(id)) throw new VertexNotFoundError(id)
+    const outgoing = this.#adjacencyMap.get(id)
+    if (outgoing) this.#edgeCount -= outgoing.size
     this.#vertices.delete(id)
     this.#adjacencyMap.delete(id)
     for (const innerMap of this.#adjacencyMap.values()) {
-      innerMap.delete(id)
+      if (innerMap.delete(id)) this.#edgeCount--
     }
   }
 
-  removeEdge(sourceId: VertexId, targetId: VertexId): boolean {
+  removeEdge(sourceId: VertexId, targetId: VertexId): void {
     const innerMap = this.#adjacencyMap.get(sourceId)
-    if (!innerMap) return false
-    return innerMap.delete(targetId)
+    if (!innerMap || !innerMap.has(targetId)) throw new EdgeNotFoundError(sourceId, targetId)
+    innerMap.delete(targetId)
+    this.#edgeCount--
   }
 
-  mapGraphOver(): GraphSnapshot<T> {
-    return Array.from(this.#vertices.keys()).reduce((acc: GraphSnapshot<T>, id) => {
+  mapGraphOver(): GraphSnapshot {
+    return Array.from(this.#vertices.keys()).reduce((acc: GraphSnapshot, id) => {
       return acc.set(id, this.getAdjacent(id))
     }, new Map())
   }
