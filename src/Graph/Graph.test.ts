@@ -420,6 +420,26 @@ describe('Graph', () => {
     expect(() => graph.removeEdge(0, 1)).toThrow(EdgeNotFoundError)
   })
 
+  it('removeEdge throws VertexNotFoundError when source vertex is missing', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(1, 'b')
+
+    expect(() => graph.removeEdge(99, 1)).toThrow(VertexNotFoundError)
+  })
+
+  it('removeEdge throws VertexNotFoundError when target vertex is missing', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+
+    expect(() => graph.removeEdge(0, 99)).toThrow(VertexNotFoundError)
+  })
+
+  it('getAdjacent throws VertexNotFoundError for unknown vertex', () => {
+    const graph = new Graph<string>()
+
+    expect(() => graph.getAdjacent(99)).toThrow(VertexNotFoundError)
+  })
+
   it('getAdjacent returns VertexId[] in edge insertion order', () => {
     const graph = new Graph<string>()
     graph.addVertex(0, 'a')
@@ -440,6 +460,8 @@ describe('Graph', () => {
     graph.addVertex(0, 'a')
     graph.addVertex(1, 'b')
     graph.addVertex(2, 'c')
+    expect(graph.edgeCount).toBe(0)
+
     graph.addEdge(0, 1)
     expect(graph.edgeCount).toBe(1)
 
@@ -467,25 +489,20 @@ describe('Graph', () => {
     expect(graph.getAdjacent(2)).toEqual([])
   })
 
-  it('EdgeAlreadyExistsError and EdgeNotFoundError are exported and catchable via instanceof', () => {
-    const alreadyExists = new EdgeAlreadyExistsError('src', 'tgt')
-    expect(alreadyExists).toBeInstanceOf(Error)
-    expect(alreadyExists).toBeInstanceOf(EdgeAlreadyExistsError)
-    expect(alreadyExists.name).toBe('EdgeAlreadyExistsError')
+  it('edgeCount is decremented correctly after partial vertex removal', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+    graph.addVertex(1, 'b')
+    graph.addVertex(2, 'c')
+    graph.addEdge(0, 1)
+    graph.addEdge(1, 2)
+    graph.addEdge(0, 2)
+    expect(graph.edgeCount).toBe(3)
 
-    const notFound = new EdgeNotFoundError('src', 'tgt')
-    expect(notFound).toBeInstanceOf(Error)
-    expect(notFound).toBeInstanceOf(EdgeNotFoundError)
-    expect(notFound.name).toBe('EdgeNotFoundError')
+    graph.removeVertex(1)
 
-    const caught = (() => {
-      try {
-        throw new EdgeAlreadyExistsError('a', 'b')
-      } catch (e) {
-        return e instanceof EdgeAlreadyExistsError
-      }
-    })()
-    expect(caught).toBe(true)
+    expect(graph.edgeCount).toBe(1)
+    expect(graph.getAdjacent(0)).toEqual([2])
   })
 
   it('detectCycle returns false for an acyclic graph', () => {

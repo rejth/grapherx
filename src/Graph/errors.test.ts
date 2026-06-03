@@ -17,6 +17,11 @@ describe('Graph error classes', () => {
       const err = new VertexAlreadyExistsError('v1')
       expect(err.message).toContain('v1')
     })
+
+    it('has correct name property', () => {
+      const err = new VertexAlreadyExistsError('v1')
+      expect(err.name).toBe('VertexAlreadyExistsError')
+    })
   })
 
   describe('VertexNotFoundError', () => {
@@ -29,6 +34,11 @@ describe('Graph error classes', () => {
     it('includes the vertex id in the message', () => {
       const err = new VertexNotFoundError(42)
       expect(err.message).toContain('42')
+    })
+
+    it('has correct name property', () => {
+      const err = new VertexNotFoundError(42)
+      expect(err.name).toBe('VertexNotFoundError')
     })
   })
 

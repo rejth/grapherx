@@ -4,7 +4,7 @@ import {
   VertexAlreadyExistsError,
   VertexNotFoundError,
 } from './errors'
-import type { EdgeRecord, GraphSnapshot, IGraph, VertexId, VertexSnapshot } from './interface'
+import type { GraphSnapshot, IGraph, VertexId, VertexSnapshot } from './interface'
 import { type TVertex, Vertex } from './Vertex'
 
 type TraversalStep<T> = {
@@ -32,25 +32,9 @@ class TraversalQueue<T> {
   }
 }
 
-class TraversalStack<T> {
-  #items: T[] = []
-
-  get length(): number {
-    return this.#items.length
-  }
-
-  push(value: T): void {
-    this.#items.push(value)
-  }
-
-  pop(): T | undefined {
-    return this.#items.pop()
-  }
-}
-
 export class Graph<T = unknown> implements IGraph<T> {
   #vertices: Map<VertexId, TVertex<T>>
-  #adjacencyMap: Map<VertexId, Map<VertexId, EdgeRecord>>
+  #adjacencyMap: Map<VertexId, Set<VertexId>>
   #edgeCount = 0
 
   constructor() {
@@ -66,11 +50,9 @@ export class Graph<T = unknown> implements IGraph<T> {
   }
 
   #getAdjacentVertices(id: VertexId): TVertex<T>[] {
-    const innerMap = this.#adjacencyMap.get(id)
-    if (!innerMap) return []
-    return Array.from(innerMap.keys())
-      .map((adjId) => this.#vertices.get(adjId))
-      .filter((v): v is TVertex<T> => v !== undefined)
+    const innerSet = this.#adjacencyMap.get(id)
+    if (!innerSet) return []
+    return Array.from(innerSet).map((adjId) => this.#vertices.get(adjId)!)
   }
 
   #breadthFirstSteps(startId: VertexId): TraversalStep<T>[] {
@@ -78,10 +60,10 @@ export class Graph<T = unknown> implements IGraph<T> {
     if (!startVertex) return []
 
     const queue = new TraversalQueue<TraversalStep<T>>()
-    const visited = new Set<string>()
+    const visited = new Set<VertexId>()
     const traversal: TraversalStep<T>[] = []
 
-    visited.add(startVertex.uuid)
+    visited.add(startVertex.id)
     queue.push({ vertex: startVertex, distance: 0 })
 
     while (queue.length) {
@@ -91,8 +73,8 @@ export class Graph<T = unknown> implements IGraph<T> {
       traversal.push(step)
 
       for (const adjacent of this.#getAdjacentVertices(step.vertex.id)) {
-        if (visited.has(adjacent.uuid)) continue
-        visited.add(adjacent.uuid)
+        if (visited.has(adjacent.id)) continue
+        visited.add(adjacent.id)
         queue.push({ vertex: adjacent, distance: step.distance + 1 })
       }
     }
@@ -101,8 +83,8 @@ export class Graph<T = unknown> implements IGraph<T> {
   }
 
   #depthFirstVertices(startVertices: Iterable<TVertex<T>>): TVertex<T>[] {
-    const stack = new TraversalStack<IterableIterator<TVertex<T>>>()
-    const visited = new Set<string>()
+    const stack: IterableIterator<TVertex<T>>[] = []
+    const visited = new Set<VertexId>()
     const traversal: TVertex<T>[] = []
 
     stack.push(Array.from(startVertices).values())
@@ -112,9 +94,9 @@ export class Graph<T = unknown> implements IGraph<T> {
       if (!iterator) return traversal
 
       for (const vertex of iterator) {
-        if (visited.has(vertex.uuid)) continue
+        if (visited.has(vertex.id)) continue
 
-        visited.add(vertex.uuid)
+        visited.add(vertex.id)
         traversal.push(vertex)
         stack.push(iterator)
         stack.push(this.#getAdjacentVertices(vertex.id).values())
@@ -136,7 +118,7 @@ export class Graph<T = unknown> implements IGraph<T> {
   addVertex(id: VertexId, value: T): void {
     if (this.#vertices.has(id)) throw new VertexAlreadyExistsError(id)
     this.#vertices.set(id, new Vertex<T>(id, value))
-    this.#adjacencyMap.set(id, new Map())
+    this.#adjacencyMap.set(id, new Set())
   }
 
   updateVertex(id: VertexId, value: T): void {
@@ -152,17 +134,16 @@ export class Graph<T = unknown> implements IGraph<T> {
   }
 
   getAdjacent(id: VertexId): VertexId[] {
-    const innerMap = this.#adjacencyMap.get(id)
-    if (!innerMap) return []
-    return Array.from(innerMap.keys())
+    if (!this.#vertices.has(id)) throw new VertexNotFoundError(id)
+    return [...this.#adjacencyMap.get(id)!]
   }
 
   addEdge(sourceId: VertexId, targetId: VertexId): void {
     if (!this.#vertices.has(sourceId)) throw new VertexNotFoundError(sourceId)
     if (!this.#vertices.has(targetId)) throw new VertexNotFoundError(targetId)
-    const innerMap = this.#adjacencyMap.get(sourceId)!
-    if (innerMap.has(targetId)) throw new EdgeAlreadyExistsError(sourceId, targetId)
-    innerMap.set(targetId, {})
+    const innerSet = this.#adjacencyMap.get(sourceId)!
+    if (innerSet.has(targetId)) throw new EdgeAlreadyExistsError(sourceId, targetId)
+    innerSet.add(targetId)
     this.#edgeCount++
   }
 
@@ -261,22 +242,26 @@ export class Graph<T = unknown> implements IGraph<T> {
     if (outgoing) this.#edgeCount -= outgoing.size
     this.#vertices.delete(id)
     this.#adjacencyMap.delete(id)
-    for (const innerMap of this.#adjacencyMap.values()) {
-      if (innerMap.delete(id)) this.#edgeCount--
+    for (const innerSet of this.#adjacencyMap.values()) {
+      if (innerSet.delete(id)) this.#edgeCount--
     }
   }
 
   removeEdge(sourceId: VertexId, targetId: VertexId): void {
-    const innerMap = this.#adjacencyMap.get(sourceId)
-    if (!innerMap || !innerMap.has(targetId)) throw new EdgeNotFoundError(sourceId, targetId)
-    innerMap.delete(targetId)
+    if (!this.#vertices.has(sourceId)) throw new VertexNotFoundError(sourceId)
+    if (!this.#vertices.has(targetId)) throw new VertexNotFoundError(targetId)
+    const innerSet = this.#adjacencyMap.get(sourceId)!
+    if (!innerSet.has(targetId)) throw new EdgeNotFoundError(sourceId, targetId)
+    innerSet.delete(targetId)
     this.#edgeCount--
   }
 
   mapGraphOver(): GraphSnapshot {
-    return Array.from(this.#vertices.keys()).reduce((acc: GraphSnapshot, id) => {
-      return acc.set(id, this.getAdjacent(id))
-    }, new Map())
+    const snapshot: GraphSnapshot = new Map()
+    for (const id of this.#vertices.keys()) {
+      snapshot.set(id, this.getAdjacent(id))
+    }
+    return snapshot
   }
 
   // Topological Sort is used to find a linear ordering of elements that have dependencies on each other.
@@ -293,7 +278,7 @@ export class Graph<T = unknown> implements IGraph<T> {
     this.#vertices.forEach((node, id) => {
       process.stdout.write(`|id: ${String(id)}, value: ${String(node.value)}| => `)
 
-      for (const adjId of this.#adjacencyMap.get(id)?.keys() ?? []) {
+      for (const adjId of this.#adjacencyMap.get(id) ?? []) {
         const adj = this.#vertices.get(adjId)
         if (adj) process.stdout.write(`[${String(adj.value)}] -> `)
       }
