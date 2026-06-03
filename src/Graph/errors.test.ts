@@ -1,6 +1,7 @@
 import {
   EdgeAlreadyExistsError,
   EdgeNotFoundError,
+  SelfLoopError,
   VertexAlreadyExistsError,
   VertexNotFoundError,
 } from './errors'
@@ -77,6 +78,24 @@ describe('Graph error classes', () => {
     it('has correct name property', () => {
       const err = new EdgeNotFoundError('x', 'y')
       expect(err.name).toBe('EdgeNotFoundError')
+    })
+  })
+
+  describe('SelfLoopError', () => {
+    it('is catchable via instanceof', () => {
+      const err = new SelfLoopError('v1')
+      expect(err).toBeInstanceOf(SelfLoopError)
+      expect(err).toBeInstanceOf(Error)
+    })
+
+    it('includes the vertex id in the message', () => {
+      const err = new SelfLoopError('v1')
+      expect(err.message).toContain('v1')
+    })
+
+    it('has correct name property', () => {
+      const err = new SelfLoopError('v1')
+      expect(err.name).toBe('SelfLoopError')
     })
   })
 })

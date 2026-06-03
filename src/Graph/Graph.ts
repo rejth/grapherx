@@ -1,6 +1,7 @@
 import {
   EdgeAlreadyExistsError,
   EdgeNotFoundError,
+  SelfLoopError,
   VertexAlreadyExistsError,
   VertexNotFoundError,
 } from './errors'
@@ -144,8 +145,7 @@ export class Graph<T = unknown> implements IGraph<T> {
   addEdge(sourceId: VertexId, targetId: VertexId): void {
     if (!this.#vertices.has(sourceId)) throw new VertexNotFoundError(sourceId)
     if (!this.#vertices.has(targetId)) throw new VertexNotFoundError(targetId)
-    if (sourceId === targetId)
-      throw new Error(`Self-loops are not allowed: vertex ${String(sourceId)}`)
+    if (sourceId === targetId) throw new SelfLoopError(sourceId)
     const innerMap = this.#adjacencyMap.get(sourceId)!
     if (innerMap.has(targetId)) throw new EdgeAlreadyExistsError(sourceId, targetId)
     innerMap.set(targetId, {})

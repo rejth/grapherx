@@ -27,3 +27,10 @@ export class EdgeNotFoundError extends Error {
     this.name = 'EdgeNotFoundError'
   }
 }
+
+export class SelfLoopError extends Error {
+  constructor(id: VertexId) {
+    super(`Self-loops are not allowed: vertex ${String(id)}`)
+    this.name = 'SelfLoopError'
+  }
+}

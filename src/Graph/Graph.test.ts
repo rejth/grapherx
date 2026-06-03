@@ -1,6 +1,7 @@
 import {
   EdgeAlreadyExistsError,
   EdgeNotFoundError,
+  SelfLoopError,
   VertexAlreadyExistsError,
   VertexNotFoundError,
 } from './errors'
@@ -396,7 +397,7 @@ describe('Graph', () => {
     const graph = new Graph<string>()
     graph.addVertex(0, 'a')
 
-    expect(() => graph.addEdge(0, 0)).toThrow('Self-loops are not allowed')
+    expect(() => graph.addEdge(0, 0)).toThrow(SelfLoopError)
     expect(graph.edgeCount).toBe(0)
   })
 
