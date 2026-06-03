@@ -1,4 +1,10 @@
-import { VertexAlreadyExistsError, VertexNotFoundError } from './errors'
+import {
+  EdgeAlreadyExistsError,
+  EdgeNotFoundError,
+  SelfLoopError,
+  VertexAlreadyExistsError,
+  VertexNotFoundError,
+} from './errors'
 import { Graph } from './Graph'
 import type { VertexId } from './interface'
 
@@ -93,15 +99,14 @@ describe('Graph', () => {
 
     graph.addVertex(0, 'source')
     graph.addVertex(1, 'target')
-    expect(graph.addEdge(0, 1)).toBe(true)
+    graph.addEdge(0, 1)
 
     const vertex = graph.getVertex(0)
     const adjacent = graph.getAdjacent(0)
 
     expect(vertex).toEqual({ id: 0, value: 'source' })
-    expect(adjacent).toEqual([{ id: 1, value: 'target' }])
+    expect(adjacent).toEqual([1])
     expect(Object.keys(vertex ?? {}).sort()).toEqual(['id', 'value'])
-    expect(Object.keys(adjacent[0]).sort()).toEqual(['id', 'value'])
 
     const id: VertexId = vertex!.id
     expect(typeof id === 'string' || typeof id === 'number').toBe(true)
@@ -116,14 +121,14 @@ describe('Graph', () => {
     graph.addEdge(0, 1)
     graph.addEdge(0, 2)
 
-    expect(graph.removeEdge(0, 1)).toBe(true)
-    expect(graph.removeEdge(0, 1)).toBe(false)
-    expect(graph.getAdjacent(0)).toEqual([{ id: 2, value: 'c' }])
+    graph.removeEdge(0, 1)
+    expect(() => graph.removeEdge(0, 1)).toThrow(EdgeNotFoundError)
+    expect(graph.getAdjacent(0)).toEqual([2])
 
     graph.removeVertex(1)
     expect(graph.getVertex(1)).toBeUndefined()
     expect(graph.vertexCount).toBe(2)
-    expect(graph.getAdjacent(0)).toEqual([{ id: 2, value: 'c' }])
+    expect(graph.getAdjacent(0)).toEqual([2])
   })
 
   it('removes incoming adjacency when a vertex is removed', () => {
@@ -153,7 +158,7 @@ describe('Graph', () => {
 
     expect(graph.mapGraphOver()).toEqual(
       new Map([
-        [0, [{ id: 1, value: 'target' }]],
+        [0, [1]],
         [1, []],
       ]),
     )
@@ -190,13 +195,14 @@ describe('Graph', () => {
     graph.addEdge(1, 3)
     graph.addEdge(2, 3)
 
-    expect(graph.breadthFirstSearch()).toEqual([0, 1, 2, 3])
-    expect(graph.depthFirstSearch()).toEqual([0, 1, 3, 2])
+    // Adjacency stored in insertion order: adjacent(0) = [2, 1]
+    expect(graph.breadthFirstSearch()).toEqual([0, 2, 1, 3])
+    expect(graph.depthFirstSearch()).toEqual([0, 2, 3, 1])
     expect([...graph.depthFirstTraversal(0)]).toEqual([
       { id: 0, value: 'a' },
-      { id: 1, value: 'b' },
-      { id: 3, value: 'd' },
       { id: 2, value: 'c' },
+      { id: 3, value: 'd' },
+      { id: 1, value: 'b' },
     ])
     expect(graph.findShortestPath(0, 3)).toBe(2)
     expect(graph.checkPath(2, 1)).toBe(false)
@@ -351,13 +357,161 @@ describe('Graph', () => {
     expect(graph.vertexCount).toBe(1)
   })
 
-  it('addEdge returns false when source or target vertex does not exist', () => {
+  it('adjacency map initialised on vertex add returns empty adjacent list', () => {
+    const graph = new Graph<string>()
+    graph.addVertex('a', 'alpha')
+
+    expect(graph.getAdjacent('a')).toEqual([])
+
+    graph.addVertex('b', 'beta')
+    graph.addEdge('a', 'b')
+    expect(graph.getAdjacent('a')).toEqual(['b'])
+    expect(graph.getAdjacent('b')).toEqual([])
+  })
+
+  it('addEdge adds a directed edge from source to target', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+    graph.addVertex(1, 'b')
+    graph.addEdge(0, 1)
+
+    expect(graph.getAdjacent(0)).toEqual([1])
+    expect(graph.getAdjacent(1)).toEqual([])
+  })
+
+  it('addEdge throws VertexNotFoundError when source vertex is missing', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(1, 'b')
+
+    expect(() => graph.addEdge(99, 1)).toThrow(VertexNotFoundError)
+  })
+
+  it('addEdge throws VertexNotFoundError when target vertex is missing', () => {
     const graph = new Graph<string>()
     graph.addVertex(0, 'a')
 
-    expect(graph.addEdge(0, 99)).toBe(false)
-    expect(graph.addEdge(99, 0)).toBe(false)
-    expect(graph.addEdge(99, 100)).toBe(false)
+    expect(() => graph.addEdge(0, 99)).toThrow(VertexNotFoundError)
+  })
+
+  it('addEdge throws on self-loop', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+
+    expect(() => graph.addEdge(0, 0)).toThrow(SelfLoopError)
+    expect(graph.edgeCount).toBe(0)
+  })
+
+  it('addEdge throws EdgeAlreadyExistsError on duplicate edge', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+    graph.addVertex(1, 'b')
+    graph.addEdge(0, 1)
+
+    expect(() => graph.addEdge(0, 1)).toThrow(EdgeAlreadyExistsError)
+  })
+
+  it('removeEdge removes the edge', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+    graph.addVertex(1, 'b')
+    graph.addEdge(0, 1)
+
+    graph.removeEdge(0, 1)
+
+    expect(graph.getAdjacent(0)).toEqual([])
+  })
+
+  it('removeEdge throws EdgeNotFoundError on missing edge', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+    graph.addVertex(1, 'b')
+
+    expect(() => graph.removeEdge(0, 1)).toThrow(EdgeNotFoundError)
+  })
+
+  it('removeEdge throws VertexNotFoundError when source vertex is missing', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(1, 'b')
+
+    expect(() => graph.removeEdge(99, 1)).toThrow(VertexNotFoundError)
+  })
+
+  it('removeEdge throws VertexNotFoundError when target vertex is missing', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+
+    expect(() => graph.removeEdge(0, 99)).toThrow(VertexNotFoundError)
+  })
+
+  it('getAdjacent throws VertexNotFoundError for unknown vertex', () => {
+    const graph = new Graph<string>()
+
+    expect(() => graph.getAdjacent(99)).toThrow(VertexNotFoundError)
+  })
+
+  it('getAdjacent returns VertexId[] in edge insertion order', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+    graph.addVertex(1, 'b')
+    graph.addVertex(2, 'c')
+    graph.addVertex(3, 'd')
+    graph.addEdge(0, 3)
+    graph.addEdge(0, 1)
+    graph.addEdge(0, 2)
+
+    expect(graph.getAdjacent(0)).toEqual([3, 1, 2])
+  })
+
+  it('edgeCount returns the current number of edges', () => {
+    const graph = new Graph<string>()
+    expect(graph.edgeCount).toBe(0)
+
+    graph.addVertex(0, 'a')
+    graph.addVertex(1, 'b')
+    graph.addVertex(2, 'c')
+    expect(graph.edgeCount).toBe(0)
+
+    graph.addEdge(0, 1)
+    expect(graph.edgeCount).toBe(1)
+
+    graph.addEdge(0, 2)
+    expect(graph.edgeCount).toBe(2)
+
+    graph.removeEdge(0, 1)
+    expect(graph.edgeCount).toBe(1)
+  })
+
+  it('removeVertex cascades: removes all incoming and outgoing edges', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+    graph.addVertex(1, 'b')
+    graph.addVertex(2, 'c')
+    graph.addEdge(0, 1)
+    graph.addEdge(2, 1)
+    graph.addEdge(1, 2)
+    expect(graph.edgeCount).toBe(3)
+
+    graph.removeVertex(1)
+
+    expect(graph.edgeCount).toBe(0)
+    expect(graph.getAdjacent(0)).toEqual([])
+    expect(graph.getAdjacent(2)).toEqual([])
+  })
+
+  it('edgeCount is decremented correctly after partial vertex removal', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+    graph.addVertex(1, 'b')
+    graph.addVertex(2, 'c')
+    graph.addEdge(0, 1)
+    graph.addEdge(1, 2)
+    graph.addEdge(0, 2)
+    expect(graph.edgeCount).toBe(3)
+
+    graph.removeVertex(1)
+
+    expect(graph.edgeCount).toBe(1)
+    expect(graph.getAdjacent(0)).toEqual([2])
   })
 
   it('detectCycle returns false for an acyclic graph', () => {
@@ -390,10 +544,8 @@ describe('Graph', () => {
   it('models task dependencies through the Graph interface', () => {
     const graph = createTaskGraph()
 
-    expect(graph.getAdjacent(0)).toEqual([
-      { id: 2, value: 'RELOAD_COMPLEX_MEASURES' },
-      { id: 1, value: 'RELOAD_MATCHED_TREATMENTS' },
-    ])
+    // Insertion order: addEdge(0,1) before addEdge(0,2)
+    expect(graph.getAdjacent(0)).toEqual([1, 2])
     expect(graph.findShortestPath(2, 6)).toBe(3)
     expect(graph.findMotherVertex()).toEqual({
       id: 0,

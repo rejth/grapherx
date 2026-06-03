@@ -13,3 +13,24 @@ export class VertexNotFoundError extends Error {
     this.name = 'VertexNotFoundError'
   }
 }
+
+export class EdgeAlreadyExistsError extends Error {
+  constructor(sourceId: VertexId, targetId: VertexId) {
+    super(`Edge from "${String(sourceId)}" to "${String(targetId)}" already exists`)
+    this.name = 'EdgeAlreadyExistsError'
+  }
+}
+
+export class EdgeNotFoundError extends Error {
+  constructor(sourceId: VertexId, targetId: VertexId) {
+    super(`Edge from "${String(sourceId)}" to "${String(targetId)}" not found`)
+    this.name = 'EdgeNotFoundError'
+  }
+}
+
+export class SelfLoopError extends Error {
+  constructor(id: VertexId) {
+    super(`Self-loops are not allowed: vertex ${String(id)}`)
+    this.name = 'SelfLoopError'
+  }
+}

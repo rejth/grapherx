@@ -2,7 +2,7 @@
 
 GrapherX is a small TypeScript library for working with directed graphs with caller-provided vertex identifiers.
 
-Graphs are stored as adjacency lists. Callers work with `VertexId` keys and receive readonly snapshots instead of mutable internal vertices.
+Graphs are stored in a map-backed adjacency structure. Callers work with `VertexId` keys and receive readonly snapshots instead of mutable internal vertices.
 
 ```ts
 import { Graph } from 'grapherx';
@@ -17,7 +17,7 @@ graph.addEdge(0, 1);
 graph.addEdge(1, 2);
 
 graph.getAdjacent(0);
-// [{ id: 1, value: "match treatments" }]
+// [1]
 
 graph.findShortestPath(0, 2);
 // 2
@@ -27,7 +27,7 @@ graph.findShortestPath(0, 2);
 
 `Graph<T>` is dynamically sized. Vertices are added individually with `addVertex(id, value)` where `id` is a caller-provided `VertexId` (`string | number`). The constructor takes no arguments.
 
-The graph is directed. It can represent a directed acyclic graph, and it can detect cycles, but it does not currently prevent callers from adding cyclic edges.
+The graph is directed. It can represent a directed acyclic graph, and it can detect cycles. Self-loops (an edge from a vertex to itself) are rejected at insertion time; multi-vertex cyclic edges are not prevented.
 
 Public graph observations use snapshots:
 
@@ -39,10 +39,10 @@ type VertexSnapshot<T> = Readonly<{
   value: T;
 }>;
 
-type GraphSnapshot<T> = Map<VertexId, VertexSnapshot<T>[]>;
+type GraphSnapshot = Map<VertexId, VertexId[]>;
 ```
 
-`addVertex` throws `VertexAlreadyExistsError` on a duplicate ID. `updateVertex` and `removeVertex` throw `VertexNotFoundError` when the ID does not exist. Both error classes are exported and catchable via `instanceof`.
+`addVertex` throws `VertexAlreadyExistsError` on a duplicate ID. `updateVertex` and `removeVertex` throw `VertexNotFoundError` when the ID does not exist. `addEdge` throws `VertexNotFoundError` when either endpoint does not exist, throws `EdgeAlreadyExistsError` on a duplicate edge, and throws `SelfLoopError` when source and target are the same vertex. `removeEdge` throws `VertexNotFoundError` for a missing endpoint and `EdgeNotFoundError` when the edge does not exist. All five error classes are exported and catchable via `instanceof`.
 
 ## Features and Complexity
 
@@ -52,9 +52,10 @@ type GraphSnapshot<T> = Map<VertexId, VertexSnapshot<T>[]>;
 - [x] Update vertex value: `O(1)`
 - [x] Add edge: `O(1)`
 - [x] Get vertex snapshot: `O(1)`
-- [x] Get adjacent vertex snapshots: `O(out(v))`
-- [x] Remove vertex: `O(V + E)`
-- [x] Remove edge: `O(out(source))`
+- [x] Get adjacent vertex IDs: `O(out(v))`
+- [x] Edge count: `O(1)`
+- [x] Remove vertex: `O(V + out(v))`
+- [x] Remove edge: `O(1)`
 - [x] Breadth-first search: `O(V + E)`
 - [x] Depth-first search: `O(V + E)`
 - [x] Detect cycles: `O(V + E)`
@@ -64,7 +65,7 @@ type GraphSnapshot<T> = Map<VertexId, VertexSnapshot<T>[]>;
 
 ## Current Limitations
 
-- Cycles are allowed at insertion time; use `detectCycle()` to check for them.
+- Multi-vertex cycles are allowed at insertion time; use `detectCycle()` to check for them. Self-loops are rejected by `addEdge` with `SelfLoopError`.
 - `sortTopologically()` currently returns breadth-first order when the graph is acyclic. It is
   not a full topological sort implementation yet.
 - `printGraph()` writes to stdout and is mainly useful for debugging.
