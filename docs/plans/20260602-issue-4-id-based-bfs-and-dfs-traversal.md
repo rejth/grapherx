@@ -49,10 +49,10 @@ Replace the current start-at-zero, no-argument `breadthFirstSearch()` and `depth
 
 ### Task 3: Verify acceptance criteria
 
-- [ ] Verify `breadthFirstSearch(startId)` returns `VertexId[]` in BFS order starting from `startId`
-- [ ] Verify `depthFirstSearch(startId)` returns `VertexId[]` in DFS order starting from `startId`
-- [ ] Verify traversal order is deterministic (insertion order for vertices and adjacent edges)
-- [ ] Verify both methods accept `VertexId` (string or number)
-- [ ] Verify old no-argument traversal signatures are absent from `IGraph`
-- [ ] Run full project test suite
-- [ ] Run project linter — all issues must be fixed
+- [x] Verify `breadthFirstSearch(startId)` returns `VertexId[]` in BFS order starting from `startId`
+- [x] Verify `depthFirstSearch(startId)` returns `VertexId[]` in DFS order starting from `startId`
+- [x] Verify traversal order is deterministic (insertion order for vertices and adjacent edges)
+- [x] Verify both methods accept `VertexId` (string or number)
+- [x] Verify old no-argument traversal signatures are absent from `IGraph`
+- [x] Run full project test suite
+- [x] Run project linter — all issues must be fixed
