@@ -4,7 +4,7 @@ import {
   VertexAlreadyExistsError,
   VertexNotFoundError,
 } from './errors'
-import type { GraphSnapshot, IGraph, VertexId, VertexSnapshot } from './interface'
+import type { EdgeRecord, GraphSnapshot, IGraph, VertexId, VertexSnapshot } from './interface'
 import { type TVertex, Vertex } from './Vertex'
 
 type TraversalStep<T> = {
@@ -34,7 +34,7 @@ class TraversalQueue<T> {
 
 export class Graph<T = unknown> implements IGraph<T> {
   #vertices: Map<VertexId, TVertex<T>>
-  #adjacencyMap: Map<VertexId, Set<VertexId>>
+  #adjacencyMap: Map<VertexId, Map<VertexId, EdgeRecord>>
   #edgeCount = 0
 
   constructor() {
@@ -50,9 +50,9 @@ export class Graph<T = unknown> implements IGraph<T> {
   }
 
   #getAdjacentVertices(id: VertexId): TVertex<T>[] {
-    const innerSet = this.#adjacencyMap.get(id)
-    if (!innerSet) return []
-    return Array.from(innerSet).flatMap((adjId) => {
+    const innerMap = this.#adjacencyMap.get(id)
+    if (!innerMap) return []
+    return Array.from(innerMap.keys()).flatMap((adjId) => {
       const v = this.#vertices.get(adjId)
       return v ? [v] : []
     })
@@ -121,7 +121,7 @@ export class Graph<T = unknown> implements IGraph<T> {
   addVertex(id: VertexId, value: T): void {
     if (this.#vertices.has(id)) throw new VertexAlreadyExistsError(id)
     this.#vertices.set(id, new Vertex<T>(id, value))
-    this.#adjacencyMap.set(id, new Set())
+    this.#adjacencyMap.set(id, new Map())
   }
 
   updateVertex(id: VertexId, value: T): void {
@@ -138,17 +138,17 @@ export class Graph<T = unknown> implements IGraph<T> {
 
   getAdjacent(id: VertexId): VertexId[] {
     if (!this.#vertices.has(id)) throw new VertexNotFoundError(id)
-    return [...this.#adjacencyMap.get(id)!]
+    return [...this.#adjacencyMap.get(id)!.keys()]
   }
 
   addEdge(sourceId: VertexId, targetId: VertexId): void {
-    if (sourceId === targetId)
-      throw new Error(`Self-loops are not allowed: vertex ${String(sourceId)}`)
     if (!this.#vertices.has(sourceId)) throw new VertexNotFoundError(sourceId)
     if (!this.#vertices.has(targetId)) throw new VertexNotFoundError(targetId)
-    const innerSet = this.#adjacencyMap.get(sourceId)!
-    if (innerSet.has(targetId)) throw new EdgeAlreadyExistsError(sourceId, targetId)
-    innerSet.add(targetId)
+    if (sourceId === targetId)
+      throw new Error(`Self-loops are not allowed: vertex ${String(sourceId)}`)
+    const innerMap = this.#adjacencyMap.get(sourceId)!
+    if (innerMap.has(targetId)) throw new EdgeAlreadyExistsError(sourceId, targetId)
+    innerMap.set(targetId, {})
     this.#edgeCount++
   }
 
@@ -255,9 +255,9 @@ export class Graph<T = unknown> implements IGraph<T> {
   removeEdge(sourceId: VertexId, targetId: VertexId): void {
     if (!this.#vertices.has(sourceId)) throw new VertexNotFoundError(sourceId)
     if (!this.#vertices.has(targetId)) throw new VertexNotFoundError(targetId)
-    const innerSet = this.#adjacencyMap.get(sourceId)!
-    if (!innerSet.has(targetId)) throw new EdgeNotFoundError(sourceId, targetId)
-    innerSet.delete(targetId)
+    const innerMap = this.#adjacencyMap.get(sourceId)!
+    if (!innerMap.has(targetId)) throw new EdgeNotFoundError(sourceId, targetId)
+    innerMap.delete(targetId)
     this.#edgeCount--
   }
 
@@ -283,7 +283,7 @@ export class Graph<T = unknown> implements IGraph<T> {
     this.#vertices.forEach((node, id) => {
       process.stdout.write(`|id: ${String(id)}, value: ${String(node.value)}| => `)
 
-      for (const adjId of this.#adjacencyMap.get(id) ?? []) {
+      for (const adjId of this.#adjacencyMap.get(id)?.keys() ?? []) {
         const adj = this.#vertices.get(adjId)
         if (adj) process.stdout.write(`[${String(adj.value)}] -> `)
       }
