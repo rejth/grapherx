@@ -667,5 +667,8 @@ describe('Graph', () => {
     graph.breadthFirstSearch()
     // @ts-expect-error — old no-arg signature must not compile
     graph.depthFirstSearch()
+
+    expect(graph.breadthFirstSearch(0)).toEqual([0])
+    expect(graph.depthFirstSearch(0)).toEqual([0])
   })
 })
