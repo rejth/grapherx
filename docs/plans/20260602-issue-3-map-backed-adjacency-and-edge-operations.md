@@ -59,16 +59,16 @@ Replace the linked-list-backed `AdjacencyList` with a `Map<VertexId, Map<VertexI
 
 ### Task 4: Verify acceptance criteria
 
-- [ ] Verify `addEdge` adds a directed edge from source to target
-- [ ] Verify `addEdge` throws `VertexNotFoundError` when source vertex is missing
-- [ ] Verify `addEdge` throws `VertexNotFoundError` when target vertex is missing
-- [ ] Verify `addEdge` throws `EdgeAlreadyExistsError` on duplicate edge
-- [ ] Verify `removeEdge` removes the edge
-- [ ] Verify `removeEdge` throws `EdgeNotFoundError` on missing edge
-- [ ] Verify `getAdjacent` returns `VertexId[]` in edge insertion order
-- [ ] Verify `edgeCount` returns the current number of edges
-- [ ] Verify `removeVertex` cascades: removes all incoming and outgoing edges
-- [ ] Verify `EdgeAlreadyExistsError` and `EdgeNotFoundError` are exported and catchable via `instanceof`
-- [ ] Verify `LinkedList`-backed `AdjacencyList` is no longer used for adjacency storage
-- [ ] Run full project test suite
-- [ ] Run project linter — all issues must be fixed
+- [x] Verify `addEdge` adds a directed edge from source to target
+- [x] Verify `addEdge` throws `VertexNotFoundError` when source vertex is missing
+- [x] Verify `addEdge` throws `VertexNotFoundError` when target vertex is missing
+- [x] Verify `addEdge` throws `EdgeAlreadyExistsError` on duplicate edge
+- [x] Verify `removeEdge` removes the edge
+- [x] Verify `removeEdge` throws `EdgeNotFoundError` on missing edge
+- [x] Verify `getAdjacent` returns `VertexId[]` in edge insertion order
+- [x] Verify `edgeCount` returns the current number of edges
+- [x] Verify `removeVertex` cascades: removes all incoming and outgoing edges
+- [x] Verify `EdgeAlreadyExistsError` and `EdgeNotFoundError` are exported and catchable via `instanceof`
+- [x] Verify `LinkedList`-backed `AdjacencyList` is no longer used for adjacency storage
+- [x] Run full project test suite
+- [x] Run project linter — all issues must be fixed
