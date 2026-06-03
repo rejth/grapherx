@@ -27,3 +27,5 @@ export type VertexSnapshot<T> = Readonly<{
 }>
 
 export type GraphSnapshot<T> = Map<VertexId, VertexSnapshot<T>[]>
+
+export type EdgeRecord = Record<string, never>
