@@ -2,26 +2,25 @@ import { v4 as uuid } from 'uuid'
 
 import { type ILinkedList, LinkedList } from '../LinkedList'
 
+import type { VertexId } from './interface'
+
 export type TVertex<T> = {
   uuid: string
-  index: number
-  value: T | null
+  id: VertexId
+  value: T
   edges: ILinkedList<TVertex<T>>
-  visited: boolean
 }
 
 export class Vertex<T = unknown> implements TVertex<T> {
   uuid: string
-  index: number
-  value: T | null = null
+  id: VertexId
+  value: T
   edges: ILinkedList<TVertex<T>>
-  visited: boolean
 
-  constructor(index: number) {
+  constructor(id: VertexId, value: T) {
     this.uuid = uuid()
-    this.index = index
-    this.value = null
-    this.visited = false
+    this.id = id
+    this.value = value
     this.edges = new LinkedList<TVertex<T>>()
   }
 }
