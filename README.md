@@ -27,7 +27,7 @@ graph.findShortestPath(0, 2);
 
 `Graph<T>` is dynamically sized. Vertices are added individually with `addVertex(id, value)` where `id` is a caller-provided `VertexId` (`string | number`). The constructor takes no arguments.
 
-The graph is directed. It can represent a directed acyclic graph, and it can detect cycles, but it does not currently prevent callers from adding cyclic edges.
+The graph is directed. It can represent a directed acyclic graph, and it can detect cycles. Self-loops (an edge from a vertex to itself) are rejected at insertion time; multi-vertex cyclic edges are not prevented.
 
 Public graph observations use snapshots:
 
@@ -65,7 +65,7 @@ type GraphSnapshot = Map<VertexId, VertexId[]>;
 
 ## Current Limitations
 
-- Cycles are allowed at insertion time; use `detectCycle()` to check for them.
+- Multi-vertex cycles are allowed at insertion time; use `detectCycle()` to check for them. Self-loops are rejected by `addEdge` with `SelfLoopError`.
 - `sortTopologically()` currently returns breadth-first order when the graph is acyclic. It is
   not a full topological sort implementation yet.
 - `printGraph()` writes to stdout and is mainly useful for debugging.
