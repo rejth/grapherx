@@ -292,6 +292,14 @@ describe('Graph', () => {
     expect(graph.getVertex('dup')).toEqual({ id: 'dup', value: 'first' })
   })
 
+  it('addVertex throws VertexAlreadyExistsError on duplicate numeric ID', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(42, 'first')
+
+    expect(() => graph.addVertex(42, 'second')).toThrow(VertexAlreadyExistsError)
+    expect(graph.getVertex(42)).toEqual({ id: 42, value: 'first' })
+  })
+
   it('updateVertex updates value of existing vertex', () => {
     const graph = new Graph<string>()
     graph.addVertex(1, 'original')
