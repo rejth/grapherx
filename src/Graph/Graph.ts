@@ -1,4 +1,5 @@
 import {
+  CycleError,
   EdgeAlreadyExistsError,
   EdgeNotFoundError,
   SelfLoopError,
@@ -155,22 +156,6 @@ export class Graph<T = unknown> implements IGraph<T> {
     this.#edgeCount++
   }
 
-  #breadthFirstAll(): VertexId[] {
-    const visited = new Set<VertexId>()
-    const result: VertexId[] = []
-
-    for (const id of this.#vertices.keys()) {
-      if (visited.has(id)) continue
-      for (const step of this.#breadthFirstSteps(id)) {
-        if (visited.has(step.vertex.id)) continue
-        visited.add(step.vertex.id)
-        result.push(step.vertex.id)
-      }
-    }
-
-    return result
-  }
-
   breadthFirstSearch(startId: VertexId): VertexId[] {
     return this.#breadthFirstSteps(startId).map((step) => step.vertex.id)
   }
@@ -197,9 +182,10 @@ export class Graph<T = unknown> implements IGraph<T> {
           if (visited.has(adjId) && recNodes.has(adjId)) return true
           if (!visited.has(adjId) && detect(adjId)) return true
         }
+
+        recNodes.delete(id)
       }
 
-      recNodes.delete(id)
       return false
     }
 
@@ -219,18 +205,43 @@ export class Graph<T = unknown> implements IGraph<T> {
     }
   }
 
-  /*
-    Breadth first search comes to rescue.
-    The idea is to use a simple queue to traverse a graph and a depth level counter to store a number of edges we've passed.
-    So we traverse the graph in a loop until the queue is empty. On each iteration a node gets pulled off from the queue. Then we iterate over all adjacent nodes of that node.
-    Once we have passed all adjacent nodes of the node, we increase the depth level counter.
-    On each iteration we check if an adjacent node is equal to the target node.
-    If it is, we return the number the depth level, and it is going to be a minimal number of edges from the source node to the target.
-    If it is not, we add a new adjacent node gets put on to the queue.
-   */
-  findShortestPath(sourceId: VertexId, targetId: VertexId): number {
-    const targetStep = this.#breadthFirstSteps(sourceId).find((step) => step.vertex.id === targetId)
-    return targetStep?.distance ?? -1
+  findShortestPath(sourceId: VertexId, targetId: VertexId): VertexId[] | undefined {
+    if (!this.#vertices.has(sourceId)) return undefined
+    if (sourceId === targetId) return [sourceId]
+
+    const queue = new TraversalQueue<VertexId>()
+    const visited = new Set<VertexId>()
+    const predecessor = new Map<VertexId, VertexId>()
+
+    visited.add(sourceId)
+    queue.push(sourceId)
+
+    while (queue.length) {
+      const currentId = queue.shift()
+      if (currentId === undefined) break
+
+      for (const adjacent of this.#getAdjacentVertices(currentId)) {
+        const adjId = adjacent.id
+        if (visited.has(adjId)) continue
+        visited.add(adjId)
+        predecessor.set(adjId, currentId)
+
+        if (adjId === targetId) {
+          const path: VertexId[] = []
+          let curr: VertexId = targetId
+          while (curr !== sourceId) {
+            path.push(curr)
+            curr = predecessor.get(curr)!
+          }
+          path.push(sourceId)
+          return path.reverse()
+        }
+
+        queue.push(adjId)
+      }
+    }
+
+    return undefined
   }
 
   // The mother vertex is one from which all other vertices are reachable.
@@ -278,12 +289,35 @@ export class Graph<T = unknown> implements IGraph<T> {
     return snapshot
   }
 
-  // Topological Sort is used to find a linear ordering of elements that have dependencies on each other.
-  // A topological ordering is possible only when the graph has no directed cycles, i.e. if the graph is a Directed Acyclic Graph (DAG).
-  // If the graph has a cycle, some vertices will have cyclic dependencies which makes it impossible to find a linear ordering among vertices.
-  sortTopologically(): VertexId[] {
-    if (this.detectCycle()) return []
-    return this.#breadthFirstAll()
+  topologicalSort(): VertexId[] {
+    const inDegree = new Map<VertexId, number>()
+    for (const id of this.#vertices.keys()) {
+      inDegree.set(id, 0)
+    }
+    for (const id of this.#vertices.keys()) {
+      for (const adjacent of this.#getAdjacentVertices(id)) {
+        inDegree.set(adjacent.id, (inDegree.get(adjacent.id) ?? 0) + 1)
+      }
+    }
+
+    const queue = new TraversalQueue<VertexId>()
+    for (const [id, deg] of inDegree) {
+      if (deg === 0) queue.push(id)
+    }
+
+    const result: VertexId[] = []
+    while (queue.length > 0) {
+      const id = queue.shift()!
+      result.push(id)
+      for (const adjacent of this.#getAdjacentVertices(id)) {
+        const newDeg = (inDegree.get(adjacent.id) ?? 0) - 1
+        inDegree.set(adjacent.id, newDeg)
+        if (newDeg === 0) queue.push(adjacent.id)
+      }
+    }
+
+    if (result.length !== this.#vertices.size) throw new CycleError()
+    return result
   }
 
   printGraph(): void {

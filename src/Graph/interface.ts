@@ -13,12 +13,12 @@ export interface IGraph<T> {
   depthFirstSearch(startId: VertexId): VertexId[]
   depthFirstTraversal(startId: VertexId): IterableIterator<VertexSnapshot<T>>
   detectCycle(): boolean
-  findShortestPath(sourceId: VertexId, targetId: VertexId): number
+  findShortestPath(sourceId: VertexId, targetId: VertexId): VertexId[] | undefined
   findMotherVertex(): VertexSnapshot<T> | undefined
   removeVertex(id: VertexId): void
   checkPath(sourceId: VertexId, targetId: VertexId): boolean
   mapGraphOver(): GraphSnapshot
-  sortTopologically(): VertexId[]
+  topologicalSort(): VertexId[]
   printGraph(): void
 }
 
