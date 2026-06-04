@@ -34,3 +34,10 @@ export class SelfLoopError extends Error {
     this.name = 'SelfLoopError'
   }
 }
+
+export class CycleError extends Error {
+  constructor() {
+    super('Graph contains a cycle — topological sort is not possible')
+    this.name = 'CycleError'
+  }
+}

@@ -39,15 +39,15 @@ Update `findShortestPath` to return the full path as `VertexId[] | undefined` in
 
 ### Task 2: Add CycleError, topologicalSort, update detectCycle, remove sortTopologically
 
-- [ ] Add `CycleError` class to `src/Graph/errors.ts`
-- [ ] Export `CycleError` from `src/Graph/index.ts`
-- [ ] Implement `topologicalSort(): VertexId[]` using Kahn's algorithm or DFS-based topo sort; throw `CycleError` if a cycle is detected
-- [ ] Update `detectCycle()` internals to use `VertexId`-based vertex tracking (replacing any index-based visited arrays)
-- [ ] Remove `sortTopologically` from `Graph` and `IGraph`
-- [ ] Update `IGraph<T>` to add `topologicalSort(): VertexId[]`
-- [ ] Write tests: `topologicalSort` returns valid ordering for a DAG, throws `CycleError` for cyclic graph, `CycleError` catchable via `instanceof`
-- [ ] Write tests: `detectCycle` returns `true` for cyclic graphs and `false` for acyclic graphs
-- [ ] Run project tests — must pass before next task
+- [x] Add `CycleError` class to `src/Graph/errors.ts`
+- [x] Export `CycleError` from `src/Graph/index.ts`
+- [x] Implement `topologicalSort(): VertexId[]` using Kahn's algorithm or DFS-based topo sort; throw `CycleError` if a cycle is detected
+- [x] Update `detectCycle()` internals to use `VertexId`-based vertex tracking (replacing any index-based visited arrays)
+- [x] Remove `sortTopologically` from `Graph` and `IGraph`
+- [x] Update `IGraph<T>` to add `topologicalSort(): VertexId[]`
+- [x] Write tests: `topologicalSort` returns valid ordering for a DAG, throws `CycleError` for cyclic graph, `CycleError` catchable via `instanceof`
+- [x] Write tests: `detectCycle` returns `true` for cyclic graphs and `false` for acyclic graphs
+- [x] Run project tests — must pass before next task
 
 ### Task 3: Verify acceptance criteria
 

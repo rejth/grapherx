@@ -1,4 +1,5 @@
 import {
+  CycleError,
   EdgeAlreadyExistsError,
   EdgeNotFoundError,
   SelfLoopError,
@@ -155,22 +156,6 @@ export class Graph<T = unknown> implements IGraph<T> {
     this.#edgeCount++
   }
 
-  #breadthFirstAll(): VertexId[] {
-    const visited = new Set<VertexId>()
-    const result: VertexId[] = []
-
-    for (const id of this.#vertices.keys()) {
-      if (visited.has(id)) continue
-      for (const step of this.#breadthFirstSteps(id)) {
-        if (visited.has(step.vertex.id)) continue
-        visited.add(step.vertex.id)
-        result.push(step.vertex.id)
-      }
-    }
-
-    return result
-  }
-
   breadthFirstSearch(startId: VertexId): VertexId[] {
     return this.#breadthFirstSteps(startId).map((step) => step.vertex.id)
   }
@@ -303,12 +288,30 @@ export class Graph<T = unknown> implements IGraph<T> {
     return snapshot
   }
 
-  // Topological Sort is used to find a linear ordering of elements that have dependencies on each other.
-  // A topological ordering is possible only when the graph has no directed cycles, i.e. if the graph is a Directed Acyclic Graph (DAG).
-  // If the graph has a cycle, some vertices will have cyclic dependencies which makes it impossible to find a linear ordering among vertices.
-  sortTopologically(): VertexId[] {
-    if (this.detectCycle()) return []
-    return this.#breadthFirstAll()
+  topologicalSort(): VertexId[] {
+    const WHITE = 0,
+      GRAY = 1,
+      BLACK = 2
+    const color = new Map<VertexId, 0 | 1 | 2>()
+    const result: VertexId[] = []
+
+    const visit = (id: VertexId): void => {
+      color.set(id, GRAY)
+      for (const adjacent of this.#getAdjacentVertices(id)) {
+        const adjId = adjacent.id
+        const c = color.get(adjId) ?? WHITE
+        if (c === GRAY) throw new CycleError()
+        if (c === WHITE) visit(adjId)
+      }
+      color.set(id, BLACK)
+      result.push(id)
+    }
+
+    for (const id of this.#vertices.keys()) {
+      if ((color.get(id) ?? WHITE) === WHITE) visit(id)
+    }
+
+    return result.reverse()
   }
 
   printGraph(): void {

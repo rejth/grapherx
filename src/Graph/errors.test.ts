@@ -1,4 +1,5 @@
 import {
+  CycleError,
   EdgeAlreadyExistsError,
   EdgeNotFoundError,
   SelfLoopError,
@@ -96,6 +97,24 @@ describe('Graph error classes', () => {
     it('has correct name property', () => {
       const err = new SelfLoopError('v1')
       expect(err.name).toBe('SelfLoopError')
+    })
+  })
+
+  describe('CycleError', () => {
+    it('is catchable via instanceof', () => {
+      const err = new CycleError()
+      expect(err).toBeInstanceOf(CycleError)
+      expect(err).toBeInstanceOf(Error)
+    })
+
+    it('has a descriptive message', () => {
+      const err = new CycleError()
+      expect(err.message.length).toBeGreaterThan(0)
+    })
+
+    it('has correct name property', () => {
+      const err = new CycleError()
+      expect(err.name).toBe('CycleError')
     })
   })
 })

@@ -1,4 +1,5 @@
 import {
+  CycleError,
   EdgeAlreadyExistsError,
   EdgeNotFoundError,
   SelfLoopError,
@@ -585,7 +586,28 @@ describe('Graph', () => {
     expect(graph.detectCycle()).toBe(false)
   })
 
-  it('sortTopologically returns empty array for a cyclic graph', () => {
+  it('topologicalSort returns a valid ordering for a DAG', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+    graph.addVertex(1, 'b')
+    graph.addVertex(2, 'c')
+    graph.addVertex(3, 'd')
+    graph.addEdge(0, 1)
+    graph.addEdge(0, 2)
+    graph.addEdge(1, 3)
+    graph.addEdge(2, 3)
+
+    const order = graph.topologicalSort()
+    expect(order).toHaveLength(4)
+
+    const pos = (id: number) => order.indexOf(id)
+    expect(pos(0)).toBeLessThan(pos(1))
+    expect(pos(0)).toBeLessThan(pos(2))
+    expect(pos(1)).toBeLessThan(pos(3))
+    expect(pos(2)).toBeLessThan(pos(3))
+  })
+
+  it('topologicalSort throws CycleError for a cyclic graph', () => {
     const graph = new Graph()
     graph.addVertex(0, null)
     graph.addVertex(1, null)
@@ -594,7 +616,36 @@ describe('Graph', () => {
     graph.addEdge(1, 2)
     graph.addEdge(2, 0)
 
-    expect(graph.sortTopologically()).toEqual([])
+    expect(() => graph.topologicalSort()).toThrow(CycleError)
+  })
+
+  it('CycleError is catchable via instanceof', () => {
+    const graph = new Graph()
+    graph.addVertex(0, null)
+    graph.addVertex(1, null)
+    graph.addEdge(0, 1)
+    graph.addEdge(1, 0)
+
+    let caught: unknown
+    try {
+      graph.topologicalSort()
+    } catch (e) {
+      caught = e
+    }
+    expect(caught).toBeInstanceOf(CycleError)
+    expect(caught).toBeInstanceOf(Error)
+  })
+
+  it('topologicalSort handles disconnected DAG', () => {
+    const graph = new Graph<string>()
+    graph.addVertex('a', 'alpha')
+    graph.addVertex('b', 'beta')
+    graph.addVertex('c', 'gamma')
+    graph.addEdge('a', 'b')
+
+    const order = graph.topologicalSort()
+    expect(order).toHaveLength(3)
+    expect(order.indexOf('a')).toBeLessThan(order.indexOf('b'))
   })
 
   it('breadthFirstSearch returns empty array for unknown startId', () => {
@@ -715,7 +766,20 @@ describe('Graph', () => {
       value: 'RELOAD_PATIENT_DATA',
     })
     expect(graph.checkPath(2, 8)).toBe(true)
-    expect(graph.sortTopologically()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8])
+    const topoOrder = graph.topologicalSort()
+    expect(topoOrder).toHaveLength(9)
+    const pos = (id: number) => topoOrder.indexOf(id)
+    expect(pos(0)).toBeLessThan(pos(1))
+    expect(pos(0)).toBeLessThan(pos(2))
+    expect(pos(1)).toBeLessThan(pos(3))
+    expect(pos(1)).toBeLessThan(pos(4))
+    expect(pos(2)).toBeLessThan(pos(3))
+    expect(pos(2)).toBeLessThan(pos(4))
+    expect(pos(3)).toBeLessThan(pos(5))
+    expect(pos(4)).toBeLessThan(pos(5))
+    expect(pos(5)).toBeLessThan(pos(6))
+    expect(pos(5)).toBeLessThan(pos(7))
+    expect(pos(6)).toBeLessThan(pos(8))
     expect([...graph.mapGraphOver().keys()]).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8])
   })
 

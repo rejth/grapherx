@@ -18,7 +18,7 @@ export interface IGraph<T> {
   removeVertex(id: VertexId): void
   checkPath(sourceId: VertexId, targetId: VertexId): boolean
   mapGraphOver(): GraphSnapshot
-  sortTopologically(): VertexId[]
+  topologicalSort(): VertexId[]
   printGraph(): void
 }
 
