@@ -290,29 +290,34 @@ export class Graph<T = unknown> implements IGraph<T> {
   }
 
   topologicalSort(): VertexId[] {
-    const WHITE = 0,
-      GRAY = 1,
-      BLACK = 2
-    const color = new Map<VertexId, 0 | 1 | 2>()
-    const result: VertexId[] = []
-
-    const visit = (id: VertexId): void => {
-      color.set(id, GRAY)
-      for (const adjacent of this.#getAdjacentVertices(id)) {
-        const adjId = adjacent.id
-        const c = color.get(adjId) ?? WHITE
-        if (c === GRAY) throw new CycleError()
-        if (c === WHITE) visit(adjId)
-      }
-      color.set(id, BLACK)
-      result.push(id)
-    }
-
+    const inDegree = new Map<VertexId, number>()
     for (const id of this.#vertices.keys()) {
-      if ((color.get(id) ?? WHITE) === WHITE) visit(id)
+      inDegree.set(id, 0)
+    }
+    for (const id of this.#vertices.keys()) {
+      for (const adjacent of this.#getAdjacentVertices(id)) {
+        inDegree.set(adjacent.id, (inDegree.get(adjacent.id) ?? 0) + 1)
+      }
     }
 
-    return result.reverse()
+    const queue = new TraversalQueue<VertexId>()
+    for (const [id, deg] of inDegree) {
+      if (deg === 0) queue.push(id)
+    }
+
+    const result: VertexId[] = []
+    while (queue.length > 0) {
+      const id = queue.shift()!
+      result.push(id)
+      for (const adjacent of this.#getAdjacentVertices(id)) {
+        const newDeg = (inDegree.get(adjacent.id) ?? 0) - 1
+        inDegree.set(adjacent.id, newDeg)
+        if (newDeg === 0) queue.push(adjacent.id)
+      }
+    }
+
+    if (result.length !== this.#vertices.size) throw new CycleError()
+    return result
   }
 
   printGraph(): void {
