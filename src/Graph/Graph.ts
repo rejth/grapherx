@@ -198,6 +198,7 @@ export class Graph<T = unknown> implements IGraph<T> {
 
   findShortestPath(sourceId: VertexId, targetId: VertexId): VertexId[] | undefined {
     if (!this.#vertices.has(sourceId)) return undefined
+    if (!this.#vertices.has(targetId)) return undefined
     if (sourceId === targetId) return [sourceId]
 
     const queue = new TraversalQueue<VertexId>()

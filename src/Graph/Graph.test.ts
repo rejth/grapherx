@@ -207,6 +207,21 @@ describe('Graph', () => {
     expect(graph.detectCycle()).toBe(true)
   })
 
+  it('detectCycle finds cycle in a disconnected component', () => {
+    const graph = new Graph()
+    graph.addVertex(0, null)
+    graph.addVertex(1, null)
+    graph.addVertex(2, null)
+    graph.addVertex(3, null)
+    graph.addVertex(4, null)
+    graph.addEdge(0, 1)
+    graph.addEdge(2, 3)
+    graph.addEdge(3, 4)
+    graph.addEdge(4, 2)
+
+    expect(graph.detectCycle()).toBe(true)
+  })
+
   it('vertex insertion order is stable across add and remove cycles', () => {
     const graph = new Graph<string>()
     graph.addVertex(0, 'a')
@@ -469,6 +484,22 @@ describe('Graph', () => {
     expect(graph.edgeCount).toBe(0)
     expect(graph.getAdjacent(0)).toEqual([])
     expect(graph.getAdjacent(2)).toEqual([])
+  })
+
+  it('removeVertex decrements edgeCount correctly for a leaf vertex with only incoming edges', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+    graph.addVertex(1, 'b')
+    graph.addVertex(2, 'c')
+    graph.addEdge(0, 2)
+    graph.addEdge(1, 2)
+    expect(graph.edgeCount).toBe(2)
+
+    graph.removeVertex(2)
+
+    expect(graph.edgeCount).toBe(0)
+    expect(graph.getAdjacent(0)).toEqual([])
+    expect(graph.getAdjacent(1)).toEqual([])
   })
 
   it('edgeCount is decremented correctly after partial vertex removal', () => {
@@ -757,15 +788,15 @@ describe('Graph', () => {
   })
 
   it('old index-era methods are absent from Graph', () => {
-    const graph = new Graph<string>() as unknown as Record<string, unknown>
-    expect(graph['mapGraphOver']).toBeUndefined()
-    expect(graph['printGraph']).toBeUndefined()
-    expect(graph['findMotherVertex']).toBeUndefined()
-    expect(graph['checkPath']).toBeUndefined()
-    expect(graph['depthFirstTraversal']).toBeUndefined()
-    expect(graph['sortTopologically']).toBeUndefined()
-    expect(graph['setVertex']).toBeUndefined()
-    expect(graph['size']).toBeUndefined()
+    const graph = new Graph<string>()
+    expect('mapGraphOver' in graph).toBe(false)
+    expect('printGraph' in graph).toBe(false)
+    expect('findMotherVertex' in graph).toBe(false)
+    expect('checkPath' in graph).toBe(false)
+    expect('depthFirstTraversal' in graph).toBe(false)
+    expect('sortTopologically' in graph).toBe(false)
+    expect('setVertex' in graph).toBe(false)
+    expect('size' in graph).toBe(false)
   })
 
   it('breadthFirstSearch and depthFirstSearch reject no-argument call shape', () => {
