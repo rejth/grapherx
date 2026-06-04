@@ -48,6 +48,58 @@ type VertexSnapshot<T> = Readonly<{
 
 `addVertex` throws `VertexAlreadyExistsError` on a duplicate ID. `updateVertex` and `removeVertex` throw `VertexNotFoundError` when the ID does not exist. `addEdge` throws `VertexNotFoundError` when either endpoint does not exist, throws `EdgeAlreadyExistsError` on a duplicate edge, and throws `SelfLoopError` when source and target are the same vertex. `removeEdge` throws `VertexNotFoundError` for a missing endpoint and `EdgeNotFoundError` when the edge does not exist. `topologicalSort` throws `CycleError` when the graph contains a cycle. All six error classes are exported and catchable via `instanceof`.
 
+## API Reference
+
+### Construction
+
+```ts
+const graph = new Graph<T>()
+```
+
+No arguments. `T` is the type of vertex values.
+
+### Vertex methods
+
+```ts
+addVertex(id: VertexId, value: T): void
+updateVertex(id: VertexId, value: T): void
+getVertex(id: VertexId): VertexSnapshot<T> | undefined
+removeVertex(id: VertexId): void
+get vertexCount(): number
+```
+
+### Edge methods
+
+```ts
+addEdge(sourceId: VertexId, targetId: VertexId): void
+removeEdge(sourceId: VertexId, targetId: VertexId): void
+getAdjacent(id: VertexId): VertexId[]
+get edgeCount(): number
+```
+
+### Traversal and analysis
+
+```ts
+breadthFirstSearch(startId: VertexId): VertexId[]
+depthFirstSearch(startId: VertexId): VertexId[]
+findShortestPath(sourceId: VertexId, targetId: VertexId): VertexId[] | undefined
+detectCycle(): boolean
+topologicalSort(): VertexId[]
+```
+
+### Error classes
+
+All error classes extend `Error`, are exported, and are catchable via `instanceof`.
+
+| Class | Thrown by | Condition |
+|---|---|---|
+| `VertexAlreadyExistsError` | `addVertex` | ID already exists |
+| `VertexNotFoundError` | `updateVertex`, `removeVertex`, `addEdge`, `removeEdge`, `getAdjacent` | ID not found |
+| `EdgeAlreadyExistsError` | `addEdge` | Edge already exists |
+| `EdgeNotFoundError` | `removeEdge` | Edge not found |
+| `SelfLoopError` | `addEdge` | Source and target are the same vertex |
+| `CycleError` | `topologicalSort` | Graph contains a cycle |
+
 ## Features and Complexity
 
 `V` is the number of vertices. `E` is the number of edges. `out(v)` is the number of outgoing edges from a vertex.

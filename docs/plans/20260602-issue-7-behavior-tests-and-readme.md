@@ -77,11 +77,11 @@ Write a comprehensive external-behavior test suite that exercises `Graph` entire
 
 ### Task 5: Update README and type declarations
 
-- [ ] Update README: document `Graph` construction (no size argument), all public method signatures with parameter types and return types
-- [ ] Update README: document all five error classes with their throw conditions
-- [ ] Update README: document `VertexSnapshot<T>` shape (`id: VertexId`, `value: T`)
-- [ ] Update exported type declarations (`types/` or `dist/` as applicable): ensure `VertexId`, updated `VertexSnapshot<T>`, and all error classes are exported
-- [ ] Run project tests — must pass before next task
+- [x] Update README: document `Graph` construction (no size argument), all public method signatures with parameter types and return types
+- [x] Update README: document all five error classes with their throw conditions
+- [x] Update README: document `VertexSnapshot<T>` shape (`id: VertexId`, `value: T`)
+- [x] Update exported type declarations (`types/` or `dist/` as applicable): ensure `VertexId`, updated `VertexSnapshot<T>`, and all error classes are exported
+- [x] Run project tests — must pass before next task
 
 ### Task 6: Verify acceptance criteria
 
