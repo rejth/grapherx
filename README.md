@@ -19,6 +19,12 @@ graph.addEdge(1, 2);
 graph.getAdjacent(0);
 // [1]
 
+graph.breadthFirstSearch(0);
+// [0, 1, 2]
+
+graph.depthFirstSearch(1);
+// [1, 2]
+
 graph.findShortestPath(0, 2);
 // 2
 ```
@@ -62,6 +68,17 @@ type GraphSnapshot = Map<VertexId, VertexId[]>;
 - [x] Find shortest path in an unweighted graph: `O(V + E)`
 - [x] Check whether a path exists: `O(V + E)`
 - [x] Find a mother vertex: `O(V(V + E))`
+
+## Breaking Changes
+
+`breadthFirstSearch()` and `depthFirstSearch()` now require a `startId: VertexId` argument. The previous zero-argument form has been removed.
+
+```ts
+// Before
+graph.breadthFirstSearch()
+// After
+graph.breadthFirstSearch(startId)
+```
 
 ## Current Limitations
 

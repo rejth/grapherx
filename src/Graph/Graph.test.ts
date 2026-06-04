@@ -196,8 +196,8 @@ describe('Graph', () => {
     graph.addEdge(2, 3)
 
     // Adjacency stored in insertion order: adjacent(0) = [2, 1]
-    expect(graph.breadthFirstSearch()).toEqual([0, 2, 1, 3])
-    expect(graph.depthFirstSearch()).toEqual([0, 2, 3, 1])
+    expect(graph.breadthFirstSearch(0)).toEqual([0, 2, 1, 3])
+    expect(graph.depthFirstSearch(0)).toEqual([0, 2, 3, 1])
     expect([...graph.depthFirstTraversal(0)]).toEqual([
       { id: 0, value: 'a' },
       { id: 2, value: 'c' },
@@ -537,8 +537,111 @@ describe('Graph', () => {
     expect(graph.sortTopologically()).toEqual([])
   })
 
-  it('breadthFirstSearch returns empty array for an empty graph', () => {
-    expect(new Graph().breadthFirstSearch()).toEqual([])
+  it('breadthFirstSearch returns empty array for unknown startId', () => {
+    expect(new Graph().breadthFirstSearch(0)).toEqual([])
+    expect(new Graph().breadthFirstSearch('unknown')).toEqual([])
+  })
+
+  it('breadthFirstSearch returns vertices in BFS order from a given startId', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+    graph.addVertex(1, 'b')
+    graph.addVertex(2, 'c')
+    graph.addVertex(3, 'd')
+    graph.addEdge(0, 2)
+    graph.addEdge(0, 1)
+    graph.addEdge(1, 3)
+    graph.addEdge(2, 3)
+
+    expect(graph.breadthFirstSearch(0)).toEqual([0, 2, 1, 3])
+    expect(graph.breadthFirstSearch(2)).toEqual([2, 3])
+  })
+
+  it('depthFirstSearch returns vertices in DFS order from a given startId', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+    graph.addVertex(1, 'b')
+    graph.addVertex(2, 'c')
+    graph.addVertex(3, 'd')
+    graph.addEdge(0, 2)
+    graph.addEdge(0, 1)
+    graph.addEdge(1, 3)
+    graph.addEdge(2, 3)
+
+    expect(graph.depthFirstSearch(0)).toEqual([0, 2, 3, 1])
+    expect(graph.depthFirstSearch(1)).toEqual([1, 3])
+  })
+
+  it('breadthFirstSearch and depthFirstSearch accept string VertexId', () => {
+    const graph = new Graph<string>()
+    graph.addVertex('a', 'alpha')
+    graph.addVertex('b', 'beta')
+    graph.addVertex('c', 'gamma')
+    graph.addEdge('a', 'b')
+    graph.addEdge('a', 'c')
+
+    expect(graph.breadthFirstSearch('a')).toEqual(['a', 'b', 'c'])
+    expect(graph.depthFirstSearch('a')).toEqual(['a', 'b', 'c'])
+  })
+
+  it('depthFirstSearch returns empty array for unknown startId', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+
+    expect(graph.depthFirstSearch(99)).toEqual([])
+    expect(graph.depthFirstSearch('unknown')).toEqual([])
+  })
+
+  it('breadthFirstSearch and depthFirstSearch return [startId] for a vertex with no edges', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(42, 'lone')
+
+    expect(graph.breadthFirstSearch(42)).toEqual([42])
+    expect(graph.depthFirstSearch(42)).toEqual([42])
+  })
+
+  it('breadthFirstSearch and depthFirstSearch do not visit vertices unreachable from startId', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+    graph.addVertex(1, 'b')
+    graph.addVertex(2, 'disconnected')
+    graph.addEdge(0, 1)
+
+    expect(graph.breadthFirstSearch(0)).toEqual([0, 1])
+    expect(graph.depthFirstSearch(0)).toEqual([0, 1])
+  })
+
+  it('breadthFirstSearch and depthFirstSearch terminate on a cyclic graph without duplicates', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+    graph.addVertex(1, 'b')
+    graph.addVertex(2, 'c')
+    graph.addEdge(0, 1)
+    graph.addEdge(1, 2)
+    graph.addEdge(2, 0)
+
+    const bfs = graph.breadthFirstSearch(0)
+    const dfs = graph.depthFirstSearch(0)
+    expect(bfs).toHaveLength(3)
+    expect(new Set(bfs).size).toBe(3)
+    expect(dfs).toHaveLength(3)
+    expect(new Set(dfs).size).toBe(3)
+  })
+
+  it('breadthFirstSearch and depthFirstSearch produce deterministic order across multiple calls', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+    graph.addVertex(1, 'b')
+    graph.addVertex(2, 'c')
+    graph.addEdge(0, 1)
+    graph.addEdge(0, 2)
+
+    expect(graph.breadthFirstSearch(0)).toEqual([0, 1, 2])
+    expect(graph.depthFirstSearch(0)).toEqual([0, 1, 2])
+    const firstBfs = graph.breadthFirstSearch(0)
+    const firstDfs = graph.depthFirstSearch(0)
+    expect(graph.breadthFirstSearch(0)).toEqual(firstBfs)
+    expect(graph.depthFirstSearch(0)).toEqual(firstDfs)
   })
 
   it('models task dependencies through the Graph interface', () => {
@@ -552,7 +655,20 @@ describe('Graph', () => {
       value: 'RELOAD_PATIENT_DATA',
     })
     expect(graph.checkPath(2, 8)).toBe(true)
-    expect(graph.sortTopologically()).toEqual(graph.breadthFirstSearch())
+    expect(graph.sortTopologically()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8])
     expect([...graph.mapGraphOver().keys()]).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8])
+  })
+
+  it('breadthFirstSearch and depthFirstSearch reject no-argument call shape', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+
+    // @ts-expect-error — old no-arg signature must not compile
+    graph.breadthFirstSearch()
+    // @ts-expect-error — old no-arg signature must not compile
+    graph.depthFirstSearch()
+
+    expect(graph.breadthFirstSearch(0)).toEqual([0])
+    expect(graph.depthFirstSearch(0)).toEqual([0])
   })
 })

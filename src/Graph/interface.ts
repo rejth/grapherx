@@ -9,8 +9,8 @@ export interface IGraph<T> {
   getAdjacent(id: VertexId): VertexId[]
   addEdge(sourceId: VertexId, targetId: VertexId): void
   removeEdge(sourceId: VertexId, targetId: VertexId): void
-  breadthFirstSearch(): VertexId[]
-  depthFirstSearch(): VertexId[]
+  breadthFirstSearch(startId: VertexId): VertexId[]
+  depthFirstSearch(startId: VertexId): VertexId[]
   depthFirstTraversal(startId: VertexId): IterableIterator<VertexSnapshot<T>>
   detectCycle(): boolean
   findShortestPath(sourceId: VertexId, targetId: VertexId): number
