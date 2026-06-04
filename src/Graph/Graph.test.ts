@@ -658,6 +658,20 @@ describe('Graph', () => {
     expect(caught).toBeInstanceOf(Error)
   })
 
+  it('SelfLoopError is catchable via instanceof', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+
+    let caught: unknown
+    try {
+      graph.addEdge(0, 0)
+    } catch (e) {
+      caught = e
+    }
+    expect(caught).toBeInstanceOf(SelfLoopError)
+    expect(caught).toBeInstanceOf(Error)
+  })
+
   it('EdgeNotFoundError and EdgeAlreadyExistsError are catchable via instanceof', () => {
     const edgeNotFound = new EdgeNotFoundError(0, 1)
     expect(edgeNotFound).toBeInstanceOf(Error)
