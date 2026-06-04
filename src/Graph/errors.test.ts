@@ -109,7 +109,7 @@ describe('Graph error classes', () => {
 
     it('has a descriptive message', () => {
       const err = new CycleError()
-      expect(err.message.length).toBeGreaterThan(0)
+      expect(err.message).toContain('cycle')
     })
 
     it('has correct name property', () => {

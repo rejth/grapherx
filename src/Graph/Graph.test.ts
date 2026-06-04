@@ -646,6 +646,11 @@ describe('Graph', () => {
     const order = graph.topologicalSort()
     expect(order).toHaveLength(3)
     expect(order.indexOf('a')).toBeLessThan(order.indexOf('b'))
+    expect(order).toContain('c')
+  })
+
+  it('topologicalSort returns empty array for empty graph', () => {
+    expect(new Graph().topologicalSort()).toEqual([])
   })
 
   it('breadthFirstSearch returns empty array for unknown startId', () => {

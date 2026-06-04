@@ -182,9 +182,10 @@ export class Graph<T = unknown> implements IGraph<T> {
           if (visited.has(adjId) && recNodes.has(adjId)) return true
           if (!visited.has(adjId) && detect(adjId)) return true
         }
+
+        recNodes.delete(id)
       }
 
-      recNodes.delete(id)
       return false
     }
 
@@ -229,11 +230,11 @@ export class Graph<T = unknown> implements IGraph<T> {
           const path: VertexId[] = []
           let curr: VertexId = targetId
           while (curr !== sourceId) {
-            path.unshift(curr)
+            path.push(curr)
             curr = predecessor.get(curr)!
           }
-          path.unshift(sourceId)
-          return path
+          path.push(sourceId)
+          return path.reverse()
         }
 
         queue.push(adjId)
