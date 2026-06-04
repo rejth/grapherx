@@ -87,6 +87,8 @@ detectCycle(): boolean
 topologicalSort(): VertexId[]
 ```
 
+`findShortestPath` returns `undefined` when the target is unreachable **and** when either vertex does not exist. It does not throw `VertexNotFoundError`. To distinguish a missing vertex from an unreachable target, call `getVertex(id)` first.
+
 ### Error classes
 
 All error classes extend `Error`, are exported, and are catchable via `instanceof`.
@@ -138,7 +140,7 @@ graph.sortTopologically() // returned [] on cyclic graphs
 graph.topologicalSort() // throws CycleError on cyclic graphs
 ```
 
-`findShortestPath(sourceId, targetId)` now returns `VertexId[] | undefined` (the full vertex path) instead of `number` (edge count). Returns `undefined` when the target is unreachable. The previous sentinel value `-1` is gone.
+`findShortestPath(sourceId, targetId)` now returns `VertexId[] | undefined` (the full vertex path) instead of `number` (edge count). Returns `undefined` when the target is unreachable or when either vertex does not exist. The previous sentinel value `-1` is gone.
 
 ```ts
 // Before
