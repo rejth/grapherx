@@ -46,7 +46,7 @@ type VertexSnapshot<T> = Readonly<{
 }>;
 ```
 
-`addVertex` throws `VertexAlreadyExistsError` on a duplicate ID. `updateVertex` and `removeVertex` throw `VertexNotFoundError` when the ID does not exist. `addEdge` throws `VertexNotFoundError` when either endpoint does not exist, throws `EdgeAlreadyExistsError` on a duplicate edge, and throws `SelfLoopError` when source and target are the same vertex. `removeEdge` throws `VertexNotFoundError` for a missing endpoint and `EdgeNotFoundError` when the edge does not exist. `topologicalSort` throws `CycleError` when the graph contains a cycle. All six error classes are exported and catchable via `instanceof`.
+`addVertex` throws `VertexAlreadyExistsError` on a duplicate ID. `updateVertex`, `removeVertex`, and `getAdjacent` throw `VertexNotFoundError` when the ID does not exist. `addEdge` throws `VertexNotFoundError` when either endpoint does not exist, throws `EdgeAlreadyExistsError` on a duplicate edge, and throws `SelfLoopError` when source and target are the same vertex. `removeEdge` throws `VertexNotFoundError` for a missing endpoint and `EdgeNotFoundError` when the edge does not exist. `topologicalSort` throws `CycleError` when the graph contains a cycle. All six error classes are exported and catchable via `instanceof`.
 
 ## API Reference
 

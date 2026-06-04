@@ -550,6 +550,12 @@ describe('Graph', () => {
 
     expect(graph.findShortestPath(1, 0)).toBeUndefined()
     expect(graph.findShortestPath(0, 2)).toBeUndefined()
+  })
+
+  it('findShortestPath returns undefined for non-existent source or target vertex', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+
     expect(graph.findShortestPath(99, 0)).toBeUndefined()
     expect(graph.findShortestPath(0, 99)).toBeUndefined()
   })
@@ -585,6 +591,10 @@ describe('Graph', () => {
     expect(path).toEqual(['a', 'b', 'c'])
     expect(path![0]).toBe('a')
     expect(path![path!.length - 1]).toBe('c')
+  })
+
+  it('detectCycle returns false for an empty graph', () => {
+    expect(new Graph().detectCycle()).toBe(false)
   })
 
   it('detectCycle returns false for an acyclic graph', () => {
