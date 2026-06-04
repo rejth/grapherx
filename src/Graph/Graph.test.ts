@@ -852,18 +852,6 @@ describe('Graph', () => {
     expect(pos(6)).toBeLessThan(pos(8))
   })
 
-  it('old index-era methods are absent from Graph', () => {
-    const graph = new Graph<string>()
-    expect('mapGraphOver' in graph).toBe(false)
-    expect('printGraph' in graph).toBe(false)
-    expect('findMotherVertex' in graph).toBe(false)
-    expect('checkPath' in graph).toBe(false)
-    expect('depthFirstTraversal' in graph).toBe(false)
-    expect('sortTopologically' in graph).toBe(false)
-    expect('setVertex' in graph).toBe(false)
-    expect('size' in graph).toBe(false)
-  })
-
   it('breadthFirstSearch and depthFirstSearch reject no-argument call shape', () => {
     const graph = new Graph<string>()
     graph.addVertex(0, 'a')

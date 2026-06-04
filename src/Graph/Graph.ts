@@ -46,6 +46,14 @@ export class Graph<T = unknown> implements IGraph<T> {
     this.#adjacencyMap = new Map()
   }
 
+  get vertexCount(): number {
+    return this.#vertices.size
+  }
+
+  get edgeCount(): number {
+    return this.#edgeCount
+  }
+
   #toSnapshot(vertex: TVertex<T>): VertexSnapshot<T> {
     return {
       id: vertex.id,
@@ -55,11 +63,13 @@ export class Graph<T = unknown> implements IGraph<T> {
 
   #getAdjacentVertices(id: VertexId): TVertex<T>[] {
     const innerMap = this.#adjacencyMap.get(id)
-    if (!innerMap)
+    if (!innerMap) {
       throw new Error(`Invariant violation: no adjacency entry for vertex "${String(id)}"`)
+    }
+
     return Array.from(innerMap.keys()).flatMap((adjId) => {
-      const v = this.#vertices.get(adjId)
-      return v ? [v] : []
+      const vertex = this.#vertices.get(adjId)
+      return vertex ? [vertex] : []
     })
   }
 
@@ -115,14 +125,6 @@ export class Graph<T = unknown> implements IGraph<T> {
     return traversal
   }
 
-  get vertexCount(): number {
-    return this.#vertices.size
-  }
-
-  get edgeCount(): number {
-    return this.#edgeCount
-  }
-
   addVertex(id: VertexId, value: T): void {
     if (this.#vertices.has(id)) throw new VertexAlreadyExistsError(id)
     this.#vertices.set(id, new Vertex<T>(id, value))
@@ -147,11 +149,20 @@ export class Graph<T = unknown> implements IGraph<T> {
   }
 
   addEdge(sourceId: VertexId, targetId: VertexId): void {
-    if (sourceId === targetId) throw new SelfLoopError(sourceId)
-    if (!this.#vertices.has(sourceId)) throw new VertexNotFoundError(sourceId)
-    if (!this.#vertices.has(targetId)) throw new VertexNotFoundError(targetId)
+    if (sourceId === targetId) {
+      throw new SelfLoopError(sourceId)
+    }
+    if (!this.#vertices.has(sourceId)) {
+      throw new VertexNotFoundError(sourceId)
+    }
+    if (!this.#vertices.has(targetId)) {
+      throw new VertexNotFoundError(targetId)
+    }
+
     const innerMap = this.#adjacencyMap.get(sourceId)!
-    if (innerMap.has(targetId)) throw new EdgeAlreadyExistsError(sourceId, targetId)
+    if (innerMap.has(targetId)) {
+      throw new EdgeAlreadyExistsError(sourceId, targetId)
+    }
     innerMap.set(targetId, {})
     this.#edgeCount++
   }
@@ -224,10 +235,10 @@ export class Graph<T = unknown> implements IGraph<T> {
 
         if (adjId === targetId) {
           const path: VertexId[] = []
-          let curr: VertexId = targetId
-          while (curr !== sourceId) {
-            path.push(curr)
-            curr = predecessor.get(curr)!
+          let current: VertexId = targetId
+          while (current !== sourceId) {
+            path.push(current)
+            current = predecessor.get(current)!
           }
           path.push(sourceId)
           return path.reverse()
@@ -241,21 +252,35 @@ export class Graph<T = unknown> implements IGraph<T> {
   }
 
   removeVertex(id: VertexId): void {
-    if (!this.#vertices.has(id)) throw new VertexNotFoundError(id)
+    if (!this.#vertices.has(id)) {
+      throw new VertexNotFoundError(id)
+    }
+
     const outgoing = this.#adjacencyMap.get(id)
-    if (outgoing) this.#edgeCount -= outgoing.size
+    if (outgoing) {
+      this.#edgeCount -= outgoing.size
+    }
+
     this.#vertices.delete(id)
     this.#adjacencyMap.delete(id)
+
     for (const innerSet of this.#adjacencyMap.values()) {
       if (innerSet.delete(id)) this.#edgeCount--
     }
   }
 
   removeEdge(sourceId: VertexId, targetId: VertexId): void {
-    if (!this.#vertices.has(sourceId)) throw new VertexNotFoundError(sourceId)
-    if (!this.#vertices.has(targetId)) throw new VertexNotFoundError(targetId)
+    if (!this.#vertices.has(sourceId)) {
+      throw new VertexNotFoundError(sourceId)
+    }
+    if (!this.#vertices.has(targetId)) {
+      throw new VertexNotFoundError(targetId)
+    }
+
     const innerMap = this.#adjacencyMap.get(sourceId)!
-    if (!innerMap.has(targetId)) throw new EdgeNotFoundError(sourceId, targetId)
+    if (!innerMap.has(targetId)) {
+      throw new EdgeNotFoundError(sourceId, targetId)
+    }
     innerMap.delete(targetId)
     this.#edgeCount--
   }
@@ -272,8 +297,8 @@ export class Graph<T = unknown> implements IGraph<T> {
     }
 
     const queue = new TraversalQueue<VertexId>()
-    for (const [id, deg] of inDegree) {
-      if (deg === 0) queue.push(id)
+    for (const [id, degree] of inDegree) {
+      if (degree === 0) queue.push(id)
     }
 
     const result: VertexId[] = []
@@ -281,13 +306,16 @@ export class Graph<T = unknown> implements IGraph<T> {
       const id = queue.shift()!
       result.push(id)
       for (const adjacent of this.#getAdjacentVertices(id)) {
-        const newDeg = (inDegree.get(adjacent.id) ?? 0) - 1
-        inDegree.set(adjacent.id, newDeg)
-        if (newDeg === 0) queue.push(adjacent.id)
+        const newDegree = (inDegree.get(adjacent.id) ?? 0) - 1
+        inDegree.set(adjacent.id, newDegree)
+        if (newDegree === 0) queue.push(adjacent.id)
       }
     }
 
-    if (result.length !== this.#vertices.size) throw new CycleError()
+    if (result.length !== this.#vertices.size) {
+      throw new CycleError()
+    }
+
     return result
   }
 }
