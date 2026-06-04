@@ -292,6 +292,14 @@ describe('Graph', () => {
     expect(graph.getVertex('dup')).toEqual({ id: 'dup', value: 'first' })
   })
 
+  it('addVertex throws VertexAlreadyExistsError on duplicate numeric ID', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(42, 'first')
+
+    expect(() => graph.addVertex(42, 'second')).toThrow(VertexAlreadyExistsError)
+    expect(graph.getVertex(42)).toEqual({ id: 42, value: 'first' })
+  })
+
   it('updateVertex updates value of existing vertex', () => {
     const graph = new Graph<string>()
     graph.addVertex(1, 'original')
@@ -542,6 +550,12 @@ describe('Graph', () => {
 
     expect(graph.findShortestPath(1, 0)).toBeUndefined()
     expect(graph.findShortestPath(0, 2)).toBeUndefined()
+  })
+
+  it('findShortestPath returns undefined for non-existent source or target vertex', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+
     expect(graph.findShortestPath(99, 0)).toBeUndefined()
     expect(graph.findShortestPath(0, 99)).toBeUndefined()
   })
@@ -577,6 +591,10 @@ describe('Graph', () => {
     expect(path).toEqual(['a', 'b', 'c'])
     expect(path![0]).toBe('a')
     expect(path![path!.length - 1]).toBe('c')
+  })
+
+  it('detectCycle returns false for an empty graph', () => {
+    expect(new Graph().detectCycle()).toBe(false)
   })
 
   it('detectCycle returns false for an acyclic graph', () => {
@@ -638,6 +656,53 @@ describe('Graph', () => {
     }
     expect(caught).toBeInstanceOf(CycleError)
     expect(caught).toBeInstanceOf(Error)
+  })
+
+  it('SelfLoopError is catchable via instanceof', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+
+    let caught: unknown
+    try {
+      graph.addEdge(0, 0)
+    } catch (e) {
+      caught = e
+    }
+    expect(caught).toBeInstanceOf(SelfLoopError)
+    expect(caught).toBeInstanceOf(Error)
+  })
+
+  it('EdgeNotFoundError and EdgeAlreadyExistsError are catchable via instanceof', () => {
+    const edgeNotFound = new EdgeNotFoundError(0, 1)
+    expect(edgeNotFound).toBeInstanceOf(Error)
+    expect(edgeNotFound).toBeInstanceOf(EdgeNotFoundError)
+    expect(edgeNotFound.name).toBe('EdgeNotFoundError')
+
+    const edgeAlreadyExists = new EdgeAlreadyExistsError(0, 1)
+    expect(edgeAlreadyExists).toBeInstanceOf(Error)
+    expect(edgeAlreadyExists).toBeInstanceOf(EdgeAlreadyExistsError)
+    expect(edgeAlreadyExists.name).toBe('EdgeAlreadyExistsError')
+
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+    graph.addVertex(1, 'b')
+
+    let caughtNotFound: unknown
+    try {
+      graph.removeEdge(0, 1)
+    } catch (e) {
+      caughtNotFound = e
+    }
+    expect(caughtNotFound).toBeInstanceOf(EdgeNotFoundError)
+
+    graph.addEdge(0, 1)
+    let caughtAlreadyExists: unknown
+    try {
+      graph.addEdge(0, 1)
+    } catch (e) {
+      caughtAlreadyExists = e
+    }
+    expect(caughtAlreadyExists).toBeInstanceOf(EdgeAlreadyExistsError)
   })
 
   it('topologicalSort handles disconnected DAG', () => {

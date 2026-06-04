@@ -168,29 +168,33 @@ export class Graph<T = unknown> implements IGraph<T> {
 
   detectCycle(): boolean {
     const visited = new Set<VertexId>()
-    const recNodes = new Set<VertexId>()
+    const inStack = new Set<VertexId>()
 
-    const detect = (id: VertexId): boolean => {
-      if (!visited.has(id)) {
-        const node = this.#vertices.get(id)
-        if (!node) return false
-        visited.add(id)
-        recNodes.add(id)
+    for (const startId of this.#vertices.keys()) {
+      if (visited.has(startId)) continue
 
-        for (const adjacent of this.#getAdjacentVertices(id)) {
-          const adjId = adjacent.id
-          if (visited.has(adjId) && recNodes.has(adjId)) return true
-          if (!visited.has(adjId) && detect(adjId)) return true
+      const stack: Array<{ id: VertexId; iter: IterableIterator<TVertex<T>> }> = []
+      visited.add(startId)
+      inStack.add(startId)
+      stack.push({ id: startId, iter: this.#getAdjacentVertices(startId).values() })
+
+      while (stack.length) {
+        const frame = stack[stack.length - 1]
+        const next = frame.iter.next()
+
+        if (next.done) {
+          inStack.delete(frame.id)
+          stack.pop()
+        } else {
+          const adjId = next.value.id
+          if (inStack.has(adjId)) return true
+          if (!visited.has(adjId)) {
+            visited.add(adjId)
+            inStack.add(adjId)
+            stack.push({ id: adjId, iter: this.#getAdjacentVertices(adjId).values() })
+          }
         }
-
-        recNodes.delete(id)
       }
-
-      return false
-    }
-
-    for (const id of this.#vertices.keys()) {
-      if (detect(id)) return true
     }
 
     return false
