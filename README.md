@@ -44,8 +44,6 @@ type VertexSnapshot<T> = Readonly<{
   id: VertexId;
   value: T;
 }>;
-
-type GraphSnapshot = Map<VertexId, VertexId[]>;
 ```
 
 `addVertex` throws `VertexAlreadyExistsError` on a duplicate ID. `updateVertex` and `removeVertex` throw `VertexNotFoundError` when the ID does not exist. `addEdge` throws `VertexNotFoundError` when either endpoint does not exist, throws `EdgeAlreadyExistsError` on a duplicate edge, and throws `SelfLoopError` when source and target are the same vertex. `removeEdge` throws `VertexNotFoundError` for a missing endpoint and `EdgeNotFoundError` when the edge does not exist. `topologicalSort` throws `CycleError` when the graph contains a cycle. All six error classes are exported and catchable via `instanceof`.
@@ -66,8 +64,6 @@ type GraphSnapshot = Map<VertexId, VertexId[]>;
 - [x] Depth-first search: `O(V + E)`
 - [x] Detect cycles: `O(V + E)`
 - [x] Find shortest path in an unweighted graph: `O(V + E)`
-- [x] Check whether a path exists: `O(V + E)`
-- [x] Find a mother vertex: `O(V(V + E))`
 - [x] Topological sort (DAG): `O(V + E)`
 
 ## Breaking Changes
@@ -99,10 +95,19 @@ graph.findShortestPath(0, 2) // 2
 graph.findShortestPath(0, 2) // [0, 1, 2]
 ```
 
+`depthFirstTraversal(startId)` has been removed. Use `depthFirstSearch(startId)` instead, which returns `VertexId[]` in the same DFS order.
+
+`checkPath(sourceId, targetId)` has been removed. Use `findShortestPath(sourceId, targetId) !== undefined` instead.
+
+`findMotherVertex()` has been removed with no direct replacement.
+
+`mapGraphOver()` has been removed. To inspect the adjacency structure, iterate vertex IDs and call `getAdjacent(id)` for each.
+
+`LinkedList` is no longer exported from the package. It is an internal data structure.
+
 ## Current Limitations
 
 - Multi-vertex cycles are allowed at insertion time; use `detectCycle()` to check for them. Self-loops are rejected by `addEdge` with `SelfLoopError`.
-- `printGraph()` writes to stdout and is mainly useful for debugging.
 
 ## Get Started
 

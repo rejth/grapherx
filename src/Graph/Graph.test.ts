@@ -147,22 +147,7 @@ describe('Graph', () => {
     expect(graph.getVertex(2)).toBeUndefined()
     expect(graph.getAdjacent(0)).toEqual([])
     expect(graph.getAdjacent(1)).toEqual([])
-    expect(graph.checkPath(0, 3)).toBe(false)
-  })
-
-  it('returns graph snapshots keyed by vertex id', () => {
-    const graph = new Graph<string>()
-
-    graph.addVertex(0, 'source')
-    graph.addVertex(1, 'target')
-    graph.addEdge(0, 1)
-
-    expect(graph.mapGraphOver()).toEqual(
-      new Map([
-        [0, [1]],
-        [1, []],
-      ]),
-    )
+    expect(graph.findShortestPath(0, 3)).toBeUndefined()
   })
 
   it('runs graph operations through the public seam', () => {
@@ -174,14 +159,9 @@ describe('Graph', () => {
     graph.addEdge(0, 1)
     graph.addEdge(1, 2)
 
-    expect([...graph.depthFirstTraversal(0)]).toEqual([
-      { id: 0, value: 'a' },
-      { id: 1, value: 'b' },
-      { id: 2, value: 'c' },
-    ])
-    expect(graph.findMotherVertex()).toEqual({ id: 0, value: 'a' })
+    expect(graph.depthFirstSearch(0)).toEqual([0, 1, 2])
     expect(graph.findShortestPath(0, 2)).toEqual([0, 1, 2])
-    expect(graph.checkPath(0, 2)).toBe(true)
+    expect(graph.findShortestPath(2, 0)).toBeUndefined()
   })
 
   it('concentrates traversal behavior across graph operations', () => {
@@ -199,14 +179,8 @@ describe('Graph', () => {
     // Adjacency stored in insertion order: adjacent(0) = [2, 1]
     expect(graph.breadthFirstSearch(0)).toEqual([0, 2, 1, 3])
     expect(graph.depthFirstSearch(0)).toEqual([0, 2, 3, 1])
-    expect([...graph.depthFirstTraversal(0)]).toEqual([
-      { id: 0, value: 'a' },
-      { id: 2, value: 'c' },
-      { id: 3, value: 'd' },
-      { id: 1, value: 'b' },
-    ])
     expect(graph.findShortestPath(0, 3)).toEqual([0, 2, 3])
-    expect(graph.checkPath(2, 1)).toBe(false)
+    expect(graph.findShortestPath(2, 1)).toBeUndefined()
   })
 
   it('returns empty traversal results for invalid or unreachable paths', () => {
@@ -215,10 +189,10 @@ describe('Graph', () => {
     graph.addVertex(1, null)
     graph.addEdge(0, 1)
 
-    expect([...graph.depthFirstTraversal(4)]).toEqual([])
+    expect(graph.breadthFirstSearch(4)).toEqual([])
+    expect(graph.depthFirstSearch(4)).toEqual([])
     expect(graph.findShortestPath(1, 0)).toBeUndefined()
     expect(graph.findShortestPath(0, 4)).toBeUndefined()
-    expect(graph.checkPath(4, 0)).toBe(false)
   })
 
   it('detects directed cycles', () => {
@@ -233,6 +207,21 @@ describe('Graph', () => {
     expect(graph.detectCycle()).toBe(true)
   })
 
+  it('detectCycle finds cycle in a disconnected component', () => {
+    const graph = new Graph()
+    graph.addVertex(0, null)
+    graph.addVertex(1, null)
+    graph.addVertex(2, null)
+    graph.addVertex(3, null)
+    graph.addVertex(4, null)
+    graph.addEdge(0, 1)
+    graph.addEdge(2, 3)
+    graph.addEdge(3, 4)
+    graph.addEdge(4, 2)
+
+    expect(graph.detectCycle()).toBe(true)
+  })
+
   it('vertex insertion order is stable across add and remove cycles', () => {
     const graph = new Graph<string>()
     graph.addVertex(0, 'a')
@@ -242,9 +231,7 @@ describe('Graph', () => {
 
     graph.removeVertex(1)
 
-    const keys = [...graph.mapGraphOver().keys()]
-    expect(keys).toEqual([0, 2, 3])
-
+    expect(graph.vertexCount).toBe(3)
     expect(graph.getVertex(0)?.id).toBe(0)
     expect(graph.getVertex(2)?.id).toBe(2)
     expect(graph.getVertex(3)?.id).toBe(3)
@@ -497,6 +484,22 @@ describe('Graph', () => {
     expect(graph.edgeCount).toBe(0)
     expect(graph.getAdjacent(0)).toEqual([])
     expect(graph.getAdjacent(2)).toEqual([])
+  })
+
+  it('removeVertex decrements edgeCount correctly for a leaf vertex with only incoming edges', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+    graph.addVertex(1, 'b')
+    graph.addVertex(2, 'c')
+    graph.addEdge(0, 2)
+    graph.addEdge(1, 2)
+    expect(graph.edgeCount).toBe(2)
+
+    graph.removeVertex(2)
+
+    expect(graph.edgeCount).toBe(0)
+    expect(graph.getAdjacent(0)).toEqual([])
+    expect(graph.getAdjacent(1)).toEqual([])
   })
 
   it('edgeCount is decremented correctly after partial vertex removal', () => {
@@ -767,11 +770,7 @@ describe('Graph', () => {
     // Insertion order: addEdge(0,1) before addEdge(0,2)
     expect(graph.getAdjacent(0)).toEqual([1, 2])
     expect(graph.findShortestPath(2, 6)).toEqual([2, 3, 5, 6])
-    expect(graph.findMotherVertex()).toEqual({
-      id: 0,
-      value: 'RELOAD_PATIENT_DATA',
-    })
-    expect(graph.checkPath(2, 8)).toBe(true)
+    expect(graph.findShortestPath(2, 8)).toBeDefined()
     const topoOrder = graph.topologicalSort()
     expect(topoOrder).toHaveLength(9)
     const pos = (id: number) => topoOrder.indexOf(id)
@@ -786,7 +785,18 @@ describe('Graph', () => {
     expect(pos(5)).toBeLessThan(pos(6))
     expect(pos(5)).toBeLessThan(pos(7))
     expect(pos(6)).toBeLessThan(pos(8))
-    expect([...graph.mapGraphOver().keys()]).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8])
+  })
+
+  it('old index-era methods are absent from Graph', () => {
+    const graph = new Graph<string>()
+    expect('mapGraphOver' in graph).toBe(false)
+    expect('printGraph' in graph).toBe(false)
+    expect('findMotherVertex' in graph).toBe(false)
+    expect('checkPath' in graph).toBe(false)
+    expect('depthFirstTraversal' in graph).toBe(false)
+    expect('sortTopologically' in graph).toBe(false)
+    expect('setVertex' in graph).toBe(false)
+    expect('size' in graph).toBe(false)
   })
 
   it('breadthFirstSearch and depthFirstSearch reject no-argument call shape', () => {

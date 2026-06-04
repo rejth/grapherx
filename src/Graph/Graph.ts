@@ -6,7 +6,7 @@ import {
   VertexAlreadyExistsError,
   VertexNotFoundError,
 } from './errors'
-import type { GraphSnapshot, IGraph, VertexId, VertexSnapshot } from './interface'
+import type { IGraph, VertexId, VertexSnapshot } from './interface'
 import { type TVertex, Vertex } from './Vertex'
 
 type EdgeRecord = Record<string, never>
@@ -196,17 +196,9 @@ export class Graph<T = unknown> implements IGraph<T> {
     return false
   }
 
-  *depthFirstTraversal(startId: VertexId): IterableIterator<VertexSnapshot<T>> {
-    const startVertex = this.#vertices.get(startId)
-    if (!startVertex) return
-
-    for (const vertex of this.#depthFirstVertices([startVertex])) {
-      yield this.#toSnapshot(vertex)
-    }
-  }
-
   findShortestPath(sourceId: VertexId, targetId: VertexId): VertexId[] | undefined {
     if (!this.#vertices.has(sourceId)) return undefined
+    if (!this.#vertices.has(targetId)) return undefined
     if (sourceId === targetId) return [sourceId]
 
     const queue = new TraversalQueue<VertexId>()
@@ -244,23 +236,6 @@ export class Graph<T = unknown> implements IGraph<T> {
     return undefined
   }
 
-  // The mother vertex is one from which all other vertices are reachable.
-  // There can be multiple mother vertices, but we need to return the first one.
-  findMotherVertex(): VertexSnapshot<T> | undefined {
-    for (const vertex of this.#vertices.values()) {
-      if (this.#depthFirstVertices([vertex]).length === this.#vertices.size)
-        return this.#toSnapshot(vertex)
-    }
-    return undefined
-  }
-
-  // If there is no repeated sequence of edges and vertices between the source and the destination vertex then the path exists between these two vertices.
-  checkPath(sourceId: VertexId, targetId: VertexId): boolean {
-    const sourceVertex = this.#vertices.get(sourceId)
-    if (!sourceVertex) return false
-    return this.#depthFirstVertices([sourceVertex]).some((vertex) => vertex.id === targetId)
-  }
-
   removeVertex(id: VertexId): void {
     if (!this.#vertices.has(id)) throw new VertexNotFoundError(id)
     const outgoing = this.#adjacencyMap.get(id)
@@ -279,14 +254,6 @@ export class Graph<T = unknown> implements IGraph<T> {
     if (!innerMap.has(targetId)) throw new EdgeNotFoundError(sourceId, targetId)
     innerMap.delete(targetId)
     this.#edgeCount--
-  }
-
-  mapGraphOver(): GraphSnapshot {
-    const snapshot: GraphSnapshot = new Map()
-    for (const id of this.#vertices.keys()) {
-      snapshot.set(id, this.getAdjacent(id))
-    }
-    return snapshot
   }
 
   topologicalSort(): VertexId[] {
@@ -318,20 +285,5 @@ export class Graph<T = unknown> implements IGraph<T> {
 
     if (result.length !== this.#vertices.size) throw new CycleError()
     return result
-  }
-
-  printGraph(): void {
-    console.log('>>Adjacency List of the Graph<<')
-
-    this.#vertices.forEach((node, id) => {
-      process.stdout.write(`|id: ${String(id)}, value: ${String(node.value)}| => `)
-
-      for (const adjId of this.#adjacencyMap.get(id)?.keys() ?? []) {
-        const adj = this.#vertices.get(adjId)
-        if (adj) process.stdout.write(`[${String(adj.value)}] -> `)
-      }
-
-      console.log('null')
-    })
   }
 }
