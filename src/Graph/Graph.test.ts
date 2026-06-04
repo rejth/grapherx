@@ -648,6 +648,39 @@ describe('Graph', () => {
     expect(caught).toBeInstanceOf(Error)
   })
 
+  it('EdgeNotFoundError and EdgeAlreadyExistsError are catchable via instanceof', () => {
+    const edgeNotFound = new EdgeNotFoundError(0, 1)
+    expect(edgeNotFound).toBeInstanceOf(Error)
+    expect(edgeNotFound).toBeInstanceOf(EdgeNotFoundError)
+    expect(edgeNotFound.name).toBe('EdgeNotFoundError')
+
+    const edgeAlreadyExists = new EdgeAlreadyExistsError(0, 1)
+    expect(edgeAlreadyExists).toBeInstanceOf(Error)
+    expect(edgeAlreadyExists).toBeInstanceOf(EdgeAlreadyExistsError)
+    expect(edgeAlreadyExists.name).toBe('EdgeAlreadyExistsError')
+
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+    graph.addVertex(1, 'b')
+
+    let caughtNotFound: unknown
+    try {
+      graph.removeEdge(0, 1)
+    } catch (e) {
+      caughtNotFound = e
+    }
+    expect(caughtNotFound).toBeInstanceOf(EdgeNotFoundError)
+
+    graph.addEdge(0, 1)
+    let caughtAlreadyExists: unknown
+    try {
+      graph.addEdge(0, 1)
+    } catch (e) {
+      caughtAlreadyExists = e
+    }
+    expect(caughtAlreadyExists).toBeInstanceOf(EdgeAlreadyExistsError)
+  })
+
   it('topologicalSort handles disconnected DAG', () => {
     const graph = new Graph<string>()
     graph.addVertex('a', 'alpha')

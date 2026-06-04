@@ -64,16 +64,16 @@ Write a comprehensive external-behavior test suite that exercises `Graph` entire
 
 ### Task 4: Write traversal, path, and sort tests
 
-- [ ] Test `breadthFirstSearch`: returns correct BFS order from a start vertex
-- [ ] Test `depthFirstSearch`: returns correct DFS order from a start vertex
-- [ ] Test `findShortestPath`: returns `VertexId[]` path for reachable target
-- [ ] Test `findShortestPath`: returns `undefined` for unreachable target
-- [ ] Test `detectCycle`: returns `true` for cyclic graph
-- [ ] Test `detectCycle`: returns `false` for acyclic graph
-- [ ] Test `topologicalSort`: returns valid topological ordering for a DAG
-- [ ] Test `topologicalSort`: throws `CycleError` for cyclic graph
-- [ ] Test all five error classes catchable via `instanceof`: `VertexNotFoundError`, `VertexAlreadyExistsError`, `EdgeNotFoundError`, `EdgeAlreadyExistsError`, `CycleError`
-- [ ] Run project tests — must pass before next task
+- [x] Test `breadthFirstSearch`: returns correct BFS order from a start vertex
+- [x] Test `depthFirstSearch`: returns correct DFS order from a start vertex
+- [x] Test `findShortestPath`: returns `VertexId[]` path for reachable target
+- [x] Test `findShortestPath`: returns `undefined` for unreachable target
+- [x] Test `detectCycle`: returns `true` for cyclic graph
+- [x] Test `detectCycle`: returns `false` for acyclic graph
+- [x] Test `topologicalSort`: returns valid topological ordering for a DAG
+- [x] Test `topologicalSort`: throws `CycleError` for cyclic graph
+- [x] Test all five error classes catchable via `instanceof`: `VertexNotFoundError`, `VertexAlreadyExistsError`, `EdgeNotFoundError`, `EdgeAlreadyExistsError`, `CycleError`
+- [x] Run project tests — must pass before next task
 
 ### Task 5: Update README and type declarations
 
