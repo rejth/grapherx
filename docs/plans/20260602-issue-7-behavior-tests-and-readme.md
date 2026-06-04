@@ -50,17 +50,17 @@ Write a comprehensive external-behavior test suite that exercises `Graph` entire
 
 ### Task 3: Write edge behavior tests
 
-- [ ] Test `addEdge`: adds a directed edge, `edgeCount` increments
-- [ ] Test `addEdge`: throws `VertexNotFoundError` for missing source vertex
-- [ ] Test `addEdge`: throws `VertexNotFoundError` for missing target vertex
-- [ ] Test `addEdge`: throws `EdgeAlreadyExistsError` on duplicate edge
-- [ ] Test `removeEdge`: removes the edge, `edgeCount` decrements
-- [ ] Test `removeEdge`: throws `EdgeNotFoundError` on missing edge
-- [ ] Test `getAdjacent`: returns `VertexId[]` in edge insertion order
-- [ ] Test `edgeCount`: reflects current count accurately
-- [ ] Test `removeVertex` cascade: removes all incoming and outgoing edges automatically
-- [ ] Test insertion order: vertex iteration order is stable; adjacent ID order is stable
-- [ ] Run project tests — must pass before next task
+- [x] Test `addEdge`: adds a directed edge, `edgeCount` increments
+- [x] Test `addEdge`: throws `VertexNotFoundError` for missing source vertex
+- [x] Test `addEdge`: throws `VertexNotFoundError` for missing target vertex
+- [x] Test `addEdge`: throws `EdgeAlreadyExistsError` on duplicate edge
+- [x] Test `removeEdge`: removes the edge, `edgeCount` decrements
+- [x] Test `removeEdge`: throws `EdgeNotFoundError` on missing edge
+- [x] Test `getAdjacent`: returns `VertexId[]` in edge insertion order
+- [x] Test `edgeCount`: reflects current count accurately
+- [x] Test `removeVertex` cascade: removes all incoming and outgoing edges automatically
+- [x] Test insertion order: vertex iteration order is stable; adjacent ID order is stable
+- [x] Run project tests — must pass before next task
 
 ### Task 4: Write traversal, path, and sort tests
 
