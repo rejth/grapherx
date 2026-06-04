@@ -85,12 +85,12 @@ Write a comprehensive external-behavior test suite that exercises `Graph` entire
 
 ### Task 6: Verify acceptance criteria
 
-- [ ] Verify test suite covers all vertex, edge, cascade, insertion-order, traversal, path, cycle, and topo-sort behavior
-- [ ] Verify all tests pass
-- [ ] Verify no test asserts on internal storage details
-- [ ] Verify `LinkedList.test.ts` is deleted
-- [ ] Verify no index-based test cases remain
-- [ ] Verify README documents the new API accurately
-- [ ] Verify exported type declarations reflect `VertexId`, updated `VertexSnapshot`, and error classes
-- [ ] Run full project test suite
-- [ ] Run project linter — all issues must be fixed
+- [x] Verify test suite covers all vertex, edge, cascade, insertion-order, traversal, path, cycle, and topo-sort behavior
+- [x] Verify all tests pass
+- [x] Verify no test asserts on internal storage details
+- [x] Verify `LinkedList.test.ts` is deleted
+- [x] Verify no index-based test cases remain
+- [x] Verify README documents the new API accurately
+- [x] Verify exported type declarations reflect `VertexId`, updated `VertexSnapshot`, and error classes
+- [x] Run full project test suite
+- [x] Run project linter — all issues must be fixed
