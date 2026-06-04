@@ -6,7 +6,7 @@ import {
   VertexAlreadyExistsError,
   VertexNotFoundError,
 } from './errors'
-import type { GraphSnapshot, IGraph, VertexId, VertexSnapshot } from './interface'
+import type { IGraph, VertexId, VertexSnapshot } from './interface'
 import { type TVertex, Vertex } from './Vertex'
 
 type EdgeRecord = Record<string, never>
@@ -281,8 +281,8 @@ export class Graph<T = unknown> implements IGraph<T> {
     this.#edgeCount--
   }
 
-  mapGraphOver(): GraphSnapshot {
-    const snapshot: GraphSnapshot = new Map()
+  mapGraphOver(): Map<VertexId, VertexId[]> {
+    const snapshot: Map<VertexId, VertexId[]> = new Map()
     for (const id of this.#vertices.keys()) {
       snapshot.set(id, this.getAdjacent(id))
     }
