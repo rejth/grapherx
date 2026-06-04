@@ -219,18 +219,43 @@ export class Graph<T = unknown> implements IGraph<T> {
     }
   }
 
-  /*
-    Breadth first search comes to rescue.
-    The idea is to use a simple queue to traverse a graph and a depth level counter to store a number of edges we've passed.
-    So we traverse the graph in a loop until the queue is empty. On each iteration a node gets pulled off from the queue. Then we iterate over all adjacent nodes of that node.
-    Once we have passed all adjacent nodes of the node, we increase the depth level counter.
-    On each iteration we check if an adjacent node is equal to the target node.
-    If it is, we return the number the depth level, and it is going to be a minimal number of edges from the source node to the target.
-    If it is not, we add a new adjacent node gets put on to the queue.
-   */
-  findShortestPath(sourceId: VertexId, targetId: VertexId): number {
-    const targetStep = this.#breadthFirstSteps(sourceId).find((step) => step.vertex.id === targetId)
-    return targetStep?.distance ?? -1
+  findShortestPath(sourceId: VertexId, targetId: VertexId): VertexId[] | undefined {
+    if (!this.#vertices.has(sourceId)) return undefined
+    if (sourceId === targetId) return [sourceId]
+
+    const queue = new TraversalQueue<VertexId>()
+    const visited = new Set<VertexId>()
+    const predecessor = new Map<VertexId, VertexId>()
+
+    visited.add(sourceId)
+    queue.push(sourceId)
+
+    while (queue.length) {
+      const currentId = queue.shift()
+      if (currentId === undefined) break
+
+      for (const adjacent of this.#getAdjacentVertices(currentId)) {
+        const adjId = adjacent.id
+        if (visited.has(adjId)) continue
+        visited.add(adjId)
+        predecessor.set(adjId, currentId)
+
+        if (adjId === targetId) {
+          const path: VertexId[] = []
+          let curr: VertexId = targetId
+          while (curr !== sourceId) {
+            path.unshift(curr)
+            curr = predecessor.get(curr)!
+          }
+          path.unshift(sourceId)
+          return path
+        }
+
+        queue.push(adjId)
+      }
+    }
+
+    return undefined
   }
 
   // The mother vertex is one from which all other vertices are reachable.

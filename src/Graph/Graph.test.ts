@@ -179,7 +179,7 @@ describe('Graph', () => {
       { id: 2, value: 'c' },
     ])
     expect(graph.findMotherVertex()).toEqual({ id: 0, value: 'a' })
-    expect(graph.findShortestPath(0, 2)).toBe(2)
+    expect(graph.findShortestPath(0, 2)).toEqual([0, 1, 2])
     expect(graph.checkPath(0, 2)).toBe(true)
   })
 
@@ -204,7 +204,7 @@ describe('Graph', () => {
       { id: 3, value: 'd' },
       { id: 1, value: 'b' },
     ])
-    expect(graph.findShortestPath(0, 3)).toBe(2)
+    expect(graph.findShortestPath(0, 3)).toEqual([0, 2, 3])
     expect(graph.checkPath(2, 1)).toBe(false)
   })
 
@@ -215,8 +215,8 @@ describe('Graph', () => {
     graph.addEdge(0, 1)
 
     expect([...graph.depthFirstTraversal(4)]).toEqual([])
-    expect(graph.findShortestPath(1, 0)).toBe(-1)
-    expect(graph.findShortestPath(0, 4)).toBe(-1)
+    expect(graph.findShortestPath(1, 0)).toBeUndefined()
+    expect(graph.findShortestPath(0, 4)).toBeUndefined()
     expect(graph.checkPath(4, 0)).toBe(false)
   })
 
@@ -514,6 +514,66 @@ describe('Graph', () => {
     expect(graph.getAdjacent(0)).toEqual([2])
   })
 
+  it('findShortestPath returns path array from source to target', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+    graph.addVertex(1, 'b')
+    graph.addVertex(2, 'c')
+    graph.addVertex(3, 'd')
+    graph.addEdge(0, 1)
+    graph.addEdge(1, 2)
+    graph.addEdge(2, 3)
+
+    expect(graph.findShortestPath(0, 3)).toEqual([0, 1, 2, 3])
+    expect(graph.findShortestPath(0, 0)).toEqual([0])
+    expect(graph.findShortestPath(1, 3)).toEqual([1, 2, 3])
+  })
+
+  it('findShortestPath returns undefined when target is unreachable', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+    graph.addVertex(1, 'b')
+    graph.addVertex(2, 'c')
+    graph.addEdge(0, 1)
+
+    expect(graph.findShortestPath(1, 0)).toBeUndefined()
+    expect(graph.findShortestPath(0, 2)).toBeUndefined()
+    expect(graph.findShortestPath(99, 0)).toBeUndefined()
+  })
+
+  it('findShortestPath returns shortest path when multiple paths exist', () => {
+    const graph = new Graph<string>()
+    graph.addVertex(0, 'a')
+    graph.addVertex(1, 'b')
+    graph.addVertex(2, 'c')
+    graph.addVertex(3, 'd')
+    graph.addEdge(0, 1)
+    graph.addEdge(1, 3)
+    graph.addEdge(0, 2)
+    graph.addEdge(2, 3)
+
+    // BFS picks shortest: 0->1->3 and 0->2->3 are equal length; order depends on adjacency insertion
+    const path = graph.findShortestPath(0, 3)
+    expect(path).toBeDefined()
+    expect(path![0]).toBe(0)
+    expect(path![path!.length - 1]).toBe(3)
+    expect(path!.length).toBe(3)
+  })
+
+  it('findShortestPath path includes both source and target vertices', () => {
+    const graph = new Graph<string>()
+    graph.addVertex('a', 'alpha')
+    graph.addVertex('b', 'beta')
+    graph.addVertex('c', 'gamma')
+    graph.addEdge('a', 'b')
+    graph.addEdge('b', 'c')
+
+    const path = graph.findShortestPath('a', 'c')
+    expect(path).toEqual(['a', 'b', 'c'])
+    expect(path![0]).toBe('a')
+    expect(path![path!.length - 1]).toBe('c')
+  })
+
   it('detectCycle returns false for an acyclic graph', () => {
     const graph = new Graph<string>()
     graph.addVertex(0, 'a')
@@ -649,7 +709,7 @@ describe('Graph', () => {
 
     // Insertion order: addEdge(0,1) before addEdge(0,2)
     expect(graph.getAdjacent(0)).toEqual([1, 2])
-    expect(graph.findShortestPath(2, 6)).toBe(3)
+    expect(graph.findShortestPath(2, 6)).toEqual([2, 3, 5, 6])
     expect(graph.findMotherVertex()).toEqual({
       id: 0,
       value: 'RELOAD_PATIENT_DATA',
