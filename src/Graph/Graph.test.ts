@@ -540,6 +540,7 @@ describe('Graph', () => {
     expect(graph.findShortestPath(1, 0)).toBeUndefined()
     expect(graph.findShortestPath(0, 2)).toBeUndefined()
     expect(graph.findShortestPath(99, 0)).toBeUndefined()
+    expect(graph.findShortestPath(0, 99)).toBeUndefined()
   })
 
   it('findShortestPath returns shortest path when multiple paths exist', () => {
