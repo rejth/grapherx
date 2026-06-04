@@ -51,12 +51,12 @@ Update `findShortestPath` to return the full path as `VertexId[] | undefined` in
 
 ### Task 3: Verify acceptance criteria
 
-- [ ] Verify `findShortestPath` returns `VertexId[]` containing the full path from source to target
-- [ ] Verify `findShortestPath` returns `undefined` when target is unreachable
-- [ ] Verify `topologicalSort` returns a valid topological ordering for a DAG
-- [ ] Verify `topologicalSort` throws `CycleError` when the graph contains a cycle
-- [ ] Verify `detectCycle` returns `true` for cyclic graphs and `false` for acyclic graphs
-- [ ] Verify `CycleError` is exported and catchable via `instanceof`
-- [ ] Verify `sortTopologically` is absent from `Graph` and `IGraph`
-- [ ] Run full project test suite
-- [ ] Run project linter — all issues must be fixed
+- [x] Verify `findShortestPath` returns `VertexId[]` containing the full path from source to target
+- [x] Verify `findShortestPath` returns `undefined` when target is unreachable
+- [x] Verify `topologicalSort` returns a valid topological ordering for a DAG
+- [x] Verify `topologicalSort` throws `CycleError` when the graph contains a cycle
+- [x] Verify `detectCycle` returns `true` for cyclic graphs and `false` for acyclic graphs
+- [x] Verify `CycleError` is exported and catchable via `instanceof`
+- [x] Verify `sortTopologically` is absent from `Graph` and `IGraph`
+- [x] Run full project test suite
+- [x] Run project linter — all issues must be fixed
