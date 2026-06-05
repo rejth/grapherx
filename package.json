@@ -1,13 +1,21 @@
 {
   "name": "grapherx",
-  "version": "1.0.0",
-  "description": "Simple library for work with directed acyclic graphs",
-  "main": "./dist/src/index.js",
-  "types": "./types/src/types.d.ts",
+  "version": "0.1.0",
+  "description": "TypeScript library for working with directed graphs",
+  "main": "./dist/index.js",
+  "types": "./types/index.d.ts",
   "type": "commonjs",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "types", "README.md", "LICENSE"],
   "scripts": {
     "build": "tsc",
     "declarations": "ttsc --emitDeclarationOnly",
+    "prepublishOnly": "npm run build",
     "test": "jest --runInBand --colors --config jest.config.ts",
     "lint": "npx oxlint src",
     "lint:fix": "npx oxlint src --fix",
@@ -15,13 +23,27 @@
     "check": "biome check --write src",
     "check-updates": "npx npm-check-updates",
     "update-packages": "npx npm-check-updates -u",
-    "prepare": "husky install"
+    "prepare": "node -e \"if(process.env.INIT_CWD===process.cwd()){require('husky').install()}\""
   },
   "lint-staged": {
     "src/**/*.{ts,js}": ["biome check --write", "oxlint --fix"]
   },
   "author": "Ilya Kirsanov",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rejth/grapherx.git"
+  },
+  "keywords": [
+    "graph",
+    "directed-graph",
+    "dag",
+    "topological-sort",
+    "bfs",
+    "dfs",
+    "shortest-path",
+    "typescript"
+  ],
   "devDependencies": {
     "@biomejs/biome": "^2.4.16",
     "@types/jest": "^29.5.4",
