@@ -46,10 +46,12 @@ export class Graph<T = unknown> implements IGraph<T> {
     this.#adjacencyMap = new Map()
   }
 
+  /** Returns the number of vertices in the graph. */
   get vertexCount(): number {
     return this.#vertices.size
   }
 
+  /** Returns the number of directed edges in the graph. */
   get edgeCount(): number {
     return this.#edgeCount
   }
@@ -125,29 +127,34 @@ export class Graph<T = unknown> implements IGraph<T> {
     return traversal
   }
 
+  /** Adds a vertex with the given id and value. Throws if the id already exists. */
   addVertex(id: VertexId, value: T): void {
     if (this.#vertices.has(id)) throw new VertexAlreadyExistsError(id)
     this.#vertices.set(id, new Vertex<T>(id, value))
     this.#adjacencyMap.set(id, new Map())
   }
 
+  /** Updates the value of an existing vertex. Throws if the id is not found. */
   updateVertex(id: VertexId, value: T): void {
     const vertex = this.#vertices.get(id)
     if (!vertex) throw new VertexNotFoundError(id)
     vertex.value = value
   }
 
+  /** Returns a readonly snapshot of the vertex, or undefined if the id is not found. */
   getVertex(id: VertexId): VertexSnapshot<T> | undefined {
     const vertex = this.#vertices.get(id)
     if (!vertex) return undefined
     return this.#toSnapshot(vertex)
   }
 
+  /** Returns outgoing neighbor ids in edge insertion order. Throws if the id is not found. */
   getAdjacent(id: VertexId): VertexId[] {
     if (!this.#vertices.has(id)) throw new VertexNotFoundError(id)
     return [...this.#adjacencyMap.get(id)!.keys()]
   }
 
+  /** Adds a directed edge from source to target. Throws on missing vertices, duplicates, or self-loops. */
   addEdge(sourceId: VertexId, targetId: VertexId): void {
     if (sourceId === targetId) {
       throw new SelfLoopError(sourceId)
@@ -167,16 +174,19 @@ export class Graph<T = unknown> implements IGraph<T> {
     this.#edgeCount++
   }
 
+  /** Returns vertex ids reachable from startId in breadth-first order. */
   breadthFirstSearch(startId: VertexId): VertexId[] {
     return this.#breadthFirstSteps(startId).map((step) => step.vertex.id)
   }
 
+  /** Returns vertex ids reachable from startId in depth-first order. */
   depthFirstSearch(startId: VertexId): VertexId[] {
     const startVertex = this.#vertices.get(startId)
     if (!startVertex) return []
     return this.#depthFirstVertices([startVertex]).map((vertex) => vertex.id)
   }
 
+  /** Returns true if the graph contains a directed cycle. */
   detectCycle(): boolean {
     const visited = new Set<VertexId>()
     const inStack = new Set<VertexId>()
@@ -211,6 +221,7 @@ export class Graph<T = unknown> implements IGraph<T> {
     return false
   }
 
+  /** Returns the shortest unweighted path from source to target, or undefined if unreachable. */
   findShortestPath(sourceId: VertexId, targetId: VertexId): VertexId[] | undefined {
     if (!this.#vertices.has(sourceId)) return undefined
     if (!this.#vertices.has(targetId)) return undefined
@@ -251,6 +262,7 @@ export class Graph<T = unknown> implements IGraph<T> {
     return undefined
   }
 
+  /** Removes a vertex and all edges connected to it. Throws if the id is not found. */
   removeVertex(id: VertexId): void {
     if (!this.#vertices.has(id)) {
       throw new VertexNotFoundError(id)
@@ -269,6 +281,7 @@ export class Graph<T = unknown> implements IGraph<T> {
     }
   }
 
+  /** Removes a directed edge. Throws if either vertex or the edge is not found. */
   removeEdge(sourceId: VertexId, targetId: VertexId): void {
     if (!this.#vertices.has(sourceId)) {
       throw new VertexNotFoundError(sourceId)
@@ -285,6 +298,7 @@ export class Graph<T = unknown> implements IGraph<T> {
     this.#edgeCount--
   }
 
+  /** Returns a topological ordering of vertex ids. Throws CycleError if the graph has a cycle. */
   topologicalSort(): VertexId[] {
     const inDegree = new Map<VertexId, number>()
     for (const id of this.#vertices.keys()) {

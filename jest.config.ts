@@ -3,7 +3,7 @@
  * https://jestjs.io/docs/configuration
  */
 
-import type { Config } from '@jest/types';
+import type { Config } from '@jest/types'
 
 const config: Config.InitialOptions = {
   rootDir: './',
@@ -11,6 +11,6 @@ const config: Config.InitialOptions = {
   testMatch: ['**/?(*.)+(spec|test).[t]s'],
   testPathIgnorePatterns: ['/node_modules/', 'dist', 'build'],
   verbose: true,
-};
+}
 
-export default config;
+export default config

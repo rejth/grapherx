@@ -14,8 +14,7 @@
   "files": ["dist", "types", "README.md", "LICENSE"],
   "scripts": {
     "build": "tsc",
-    "declarations": "ttsc --emitDeclarationOnly",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "npm run check && npm run lint && npm run test && npm run build",
     "test": "jest --runInBand --colors --config jest.config.ts",
     "lint": "npx oxlint src",
     "lint:fix": "npx oxlint src --fix",
@@ -34,16 +33,11 @@
     "type": "git",
     "url": "git+https://github.com/rejth/grapherx.git"
   },
-  "keywords": [
-    "graph",
-    "directed-graph",
-    "dag",
-    "topological-sort",
-    "bfs",
-    "dfs",
-    "shortest-path",
-    "typescript"
-  ],
+  "homepage": "https://github.com/rejth/grapherx#readme",
+  "bugs": {
+    "url": "https://github.com/rejth/grapherx/issues"
+  },
+  "keywords": ["graph", "directed-graph", "dag", "topological-sort", "bfs", "dfs", "shortest-path", "typescript"],
   "devDependencies": {
     "@biomejs/biome": "^2.4.16",
     "@types/jest": "^29.5.4",
