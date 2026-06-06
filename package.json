@@ -1,6 +1,6 @@
 {
   "name": "grapherx",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "TypeScript library for working with directed graphs",
   "main": "./dist/index.js",
   "types": "./types/index.d.ts",
@@ -11,7 +11,12 @@
       "default": "./dist/index.js"
     }
   },
-  "files": ["dist", "types", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "types",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "npm run check && npm run lint && npm run test && npm run build",
@@ -25,7 +30,10 @@
     "prepare": "node -e \"if(process.env.INIT_CWD===process.cwd()){require('husky').install()}\""
   },
   "lint-staged": {
-    "src/**/*.{ts,js}": ["biome check --write", "oxlint --fix"]
+    "src/**/*.{ts,js}": [
+      "biome check --write",
+      "oxlint --fix"
+    ]
   },
   "author": "Ilya Kirsanov",
   "license": "ISC",
@@ -37,7 +45,16 @@
   "bugs": {
     "url": "https://github.com/rejth/grapherx/issues"
   },
-  "keywords": ["graph", "directed-graph", "dag", "topological-sort", "bfs", "dfs", "shortest-path", "typescript"],
+  "keywords": [
+    "graph",
+    "directed-graph",
+    "dag",
+    "topological-sort",
+    "bfs",
+    "dfs",
+    "shortest-path",
+    "typescript"
+  ],
   "devDependencies": {
     "@biomejs/biome": "^2.4.16",
     "@types/jest": "^29.5.4",
